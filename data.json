@@ -1,0 +1,98 @@
+{
+  "updated_at": "2026-09-21T21:14:00+01:00",
+  "currency": "EUR",
+  "status": "on_track",
+  "official_financial_assets": 668238.44652239,
+  "core_fire": 662980.44652239,
+  "etfs": 230296.44652239,
+  "pension": 432684,
+  "target_today": 655000,
+  "final_target": 1004000,
+  "barista": {
+    "etf_target_2029": 372000,
+    "pension_target_2029": 632000,
+    "expected_house_proceeds_2030": 250000,
+    "accessible_target_2030": 622000
+  },
+  "history": [
+    {
+      "date": "2026-09-14",
+      "label": "14 Sep",
+      "actual": 654820,
+      "target": 655000
+    },
+    {
+      "date": "2026-09-16",
+      "label": "16 Sep",
+      "actual": 656030,
+      "target": 655000
+    },
+    {
+      "date": "2026-09-17",
+      "label": "17 Sep",
+      "actual": 654998.67,
+      "target": 655000
+    },
+    {
+      "date": "2026-09-21T17:24:00+01:00",
+      "label": "21 Sep",
+      "actual": 661876,
+      "target": 655000
+    },
+    {
+      "date": "2026-09-21T21:14:00+01:00",
+      "label": "Now",
+      "actual": 662980.44652239,
+      "target": 655000
+    }
+  ],
+  "milestones": [
+    {
+      "label": "Dec 2026",
+      "target": 679000
+    },
+    {
+      "label": "Dec 2027",
+      "target": 780000
+    },
+    {
+      "label": "Dec 2028",
+      "target": 888000
+    },
+    {
+      "label": "Jun 2029",
+      "target": 945000
+    },
+    {
+      "label": "Dec 2029",
+      "target": 1004000
+    }
+  ],
+  "monthly": [
+    {
+      "month": "Sep/26",
+      "etfs": 224600,
+      "pension": 430400,
+      "core": 655000
+    },
+    {
+      "month": "Oct/26",
+      "etfs": 228000,
+      "pension": 435000,
+      "core": 663000
+    },
+    {
+      "month": "Nov/26",
+      "etfs": 231400,
+      "pension": 439700,
+      "core": 671000
+    },
+    {
+      "month": "Dec/26",
+      "etfs": 234800,
+      "pension": 444300,
+      "core": 679100
+    }
+  ],
+  "sync_warnings": []
+}
