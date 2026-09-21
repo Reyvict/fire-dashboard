@@ -8,6 +8,11 @@
   "pension": 432684,
   "target_today": 655000,
   "final_target": 1004000,
+  "contribution_plan": {
+    "etfs_monthly": 2000,
+    "pension_monthly": 2000,
+    "total_monthly": 4000
+  },
   "barista": {
     "etf_target_2029": 372000,
     "pension_target_2029": 632000,
@@ -19,31 +24,41 @@
       "date": "2026-09-14",
       "label": "14 Sep",
       "actual": 654820,
-      "target": 655000
+      "target": 655000,
+      "etfs": null,
+      "pension": null
     },
     {
       "date": "2026-09-16",
       "label": "16 Sep",
       "actual": 656030,
-      "target": 655000
+      "target": 655000,
+      "etfs": 225609.48,
+      "pension": 430419
     },
     {
       "date": "2026-09-17",
       "label": "17 Sep",
       "actual": 654998.67,
-      "target": 655000
+      "target": 655000,
+      "etfs": 226232.67,
+      "pension": 428766
     },
     {
       "date": "2026-09-21T17:24:00+01:00",
       "label": "21 Sep",
       "actual": 661876,
-      "target": 655000
+      "target": 655000,
+      "etfs": 229191.96,
+      "pension": 432684
     },
     {
       "date": "2026-09-21T21:14:00+01:00",
       "label": "Now",
       "actual": 662980.44652239,
-      "target": 655000
+      "target": 655000,
+      "etfs": 230296.44652239,
+      "pension": 432684
     }
   ],
   "milestones": [
@@ -92,6 +107,222 @@
       "etfs": 234800,
       "pension": 444300,
       "core": 679100
+    },
+    {
+      "month": "Jan/27",
+      "etfs": 238200,
+      "pension": 449000,
+      "core": 687200
+    },
+    {
+      "month": "Feb/27",
+      "etfs": 241600,
+      "pension": 453700,
+      "core": 695300
+    },
+    {
+      "month": "Mar/27",
+      "etfs": 245100,
+      "pension": 458500,
+      "core": 703500
+    },
+    {
+      "month": "Apr/27",
+      "etfs": 248600,
+      "pension": 463200,
+      "core": 711800
+    },
+    {
+      "month": "May/27",
+      "etfs": 252100,
+      "pension": 468000,
+      "core": 720100
+    },
+    {
+      "month": "Jun/27",
+      "etfs": 255600,
+      "pension": 472900,
+      "core": 728400
+    },
+    {
+      "month": "Jul/27",
+      "etfs": 259100,
+      "pension": 477700,
+      "core": 736800
+    },
+    {
+      "month": "Aug/27",
+      "etfs": 262700,
+      "pension": 482600,
+      "core": 745300
+    },
+    {
+      "month": "Sep/27",
+      "etfs": 266300,
+      "pension": 487500,
+      "core": 753800
+    },
+    {
+      "month": "Oct/27",
+      "etfs": 269900,
+      "pension": 492500,
+      "core": 762400
+    },
+    {
+      "month": "Nov/27",
+      "etfs": 273500,
+      "pension": 497400,
+      "core": 771000
+    },
+    {
+      "month": "Dec/27",
+      "etfs": 277200,
+      "pension": 502400,
+      "core": 779600
+    },
+    {
+      "month": "Jan/28",
+      "etfs": 280900,
+      "pension": 507500,
+      "core": 788300
+    },
+    {
+      "month": "Feb/28",
+      "etfs": 284600,
+      "pension": 512600,
+      "core": 797100
+    },
+    {
+      "month": "Mar/28",
+      "etfs": 288300,
+      "pension": 517600,
+      "core": 805900
+    },
+    {
+      "month": "Apr/28",
+      "etfs": 292000,
+      "pension": 522800,
+      "core": 814800
+    },
+    {
+      "month": "May/28",
+      "etfs": 295800,
+      "pension": 527900,
+      "core": 823700
+    },
+    {
+      "month": "Jun/28",
+      "etfs": 299600,
+      "pension": 533100,
+      "core": 832700
+    },
+    {
+      "month": "Jul/28",
+      "etfs": 303400,
+      "pension": 538400,
+      "core": 841700
+    },
+    {
+      "month": "Aug/28",
+      "etfs": 307200,
+      "pension": 543600,
+      "core": 850800
+    },
+    {
+      "month": "Sep/28",
+      "etfs": 311100,
+      "pension": 548900,
+      "core": 860000
+    },
+    {
+      "month": "Oct/28",
+      "etfs": 314900,
+      "pension": 554200,
+      "core": 869200
+    },
+    {
+      "month": "Nov/28",
+      "etfs": 318900,
+      "pension": 559600,
+      "core": 878400
+    },
+    {
+      "month": "Dec/28",
+      "etfs": 322800,
+      "pension": 564900,
+      "core": 887700
+    },
+    {
+      "month": "Jan/29",
+      "etfs": 326700,
+      "pension": 570400,
+      "core": 897100
+    },
+    {
+      "month": "Feb/29",
+      "etfs": 330700,
+      "pension": 575800,
+      "core": 906500
+    },
+    {
+      "month": "Mar/29",
+      "etfs": 334700,
+      "pension": 581300,
+      "core": 916000
+    },
+    {
+      "month": "Apr/29",
+      "etfs": 338700,
+      "pension": 586800,
+      "core": 925500
+    },
+    {
+      "month": "May/29",
+      "etfs": 342800,
+      "pension": 592300,
+      "core": 935100
+    },
+    {
+      "month": "Jun/29",
+      "etfs": 346800,
+      "pension": 597900,
+      "core": 944800
+    },
+    {
+      "month": "Jul/29",
+      "etfs": 350900,
+      "pension": 603500,
+      "core": 954500
+    },
+    {
+      "month": "Aug/29",
+      "etfs": 355100,
+      "pension": 609200,
+      "core": 964300
+    },
+    {
+      "month": "Sep/29",
+      "etfs": 359200,
+      "pension": 614900,
+      "core": 974100
+    },
+    {
+      "month": "Oct/29",
+      "etfs": 363400,
+      "pension": 620600,
+      "core": 984000
+    },
+    {
+      "month": "Nov/29",
+      "etfs": 367600,
+      "pension": 626300,
+      "core": 993900
+    },
+    {
+      "month": "Dec/29",
+      "etfs": 371800,
+      "pension": 632100,
+      "core": 1004000
     }
   ],
   "sync_warnings": []
