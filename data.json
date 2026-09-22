@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-09-21T21:14:00+01:00",
+  "updated_at": "2026-09-22T16:27:00+01:00",
   "currency": "EUR",
   "status": "on_track",
-  "official_financial_assets": 668238.44652239,
-  "core_fire": 662980.44652239,
-  "etfs": 230296.44652239,
-  "pension": 432684,
-  "target_today": 655000,
+  "official_financial_assets": 672728.87577559,
+  "core_fire": 667470.87577559,
+  "etfs": 231270.87577559,
+  "pension": 436200.0,
+  "target_today": 655000.0,
   "final_target": 1004000,
   "contribution_plan": {
     "etfs_monthly": 2000,
@@ -59,6 +59,14 @@
       "target": 655000,
       "etfs": 230296.44652239,
       "pension": 432684
+    },
+    {
+      "date": "2026-09-22T16:27:00+01:00",
+      "label": "22 Sep",
+      "actual": 667470.87577559,
+      "target": 655000.0,
+      "etfs": 231270.87577559,
+      "pension": 436200.0
     }
   ],
   "milestones": [
