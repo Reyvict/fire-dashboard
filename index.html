@@ -20,12 +20,22 @@ svg{width:100%;height:300px}.margin-chart{height:210px}.legend{display:flex;gap:
 table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;color:var(--muted);font-weight:600;padding:8px 6px;border-bottom:1px solid var(--line)}td{padding:10px 6px;border-bottom:1px solid #ffffff0a}th:last-child,td:last-child{text-align:right}
 .pill{display:inline-block;padding:4px 7px;border-radius:99px;color:var(--green);background:#35d07f15;font-weight:700;font-size:10px}.small{font-size:11px;color:var(--muted);line-height:1.55}.big{font-size:29px;font-weight:850}.callout{margin-top:10px;padding:11px 12px;border-radius:12px;background:#ffffff06;border:1px solid #ffffff0a}.callout strong{color:var(--text)}
 .chart-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.chart-head .small{max-width:420px;text-align:right}
+.tabs{display:flex;gap:6px;margin:0 0 12px;padding:5px;background:#0f1529;border:1px solid #ffffff0d;border-radius:14px;position:sticky;top:6px;z-index:10;backdrop-filter:blur(12px)}
+.tabbtn{flex:1;min-height:44px;border:0;border-radius:10px;background:transparent;color:var(--muted);font-weight:750;font-size:13px;cursor:pointer}
+.tabbtn.active{background:#ffffff0d;color:var(--text)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+.retirement-mode{color:var(--blue)!important;background:#7c9cff18!important;border-color:#7c9cff55!important}
 footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
 @media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.outcomes{grid-template-columns:1fr}h1{font-size:23px}.value{font-size:21px}.chart-head{display:block}.chart-head .small{text-align:left;margin-top:5px}svg{height:270px}.margin-chart{height:190px}}
 </style>
 </head>
 <body><main>
-<div class="top"><div><h1>🔥 FIRE Dashboard</h1><div class="sub" id="updated"></div></div><div class="badge" id="status">🟢 ON TRACK</div></div>
+<div class="top"><div><h1>🔥 FIRE Hub</h1><div class="sub" id="updated"></div></div><div class="badge" id="status">🟢 ON TRACK</div></div>
+<nav class="tabs" aria-label="Dashboard sections">
+  <button class="tabbtn active" id="fireTabBtn" type="button" data-tab="firePanel">🔥 FIRE Accumulation</button>
+  <button class="tabbtn" id="retirementTabBtn" type="button" data-tab="retirementPanel">🏖️ Retirement Spending</button>
+</nav>
+<div id="firePanel" class="tab-panel active">
 
 <div class="grid">
 <div class="card"><div class="label">Core FIRE atual</div><div class="value" id="core"></div><div class="small">ETFs + pensões</div></div>
@@ -81,7 +91,76 @@ footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
 
 <section class="card"><h2>Qualidade dos dados</h2><div class="row"><span>Financial Assets Finary</span><b id="official"></b></div><div class="row" style="margin-top:8px"><span>Core FIRE</span><b id="core2"></b></div><div class="small" style="margin-top:12px" id="sync"></div></section>
 
-<footer>FIRE Dashboard • <a href="https://reyvict.github.io/retirement-spending-dashboard/" style="color:#7c9cff;text-decoration:none">Retirement Spending →</a></footer>
+
+</div>
+<div id="retirementPanel" class="tab-panel">
+  <div class="card" style="margin-bottom:10px">
+    <div class="row"><div><h2 style="margin-bottom:4px">🏖️ Retirement Spending</h2><div class="small" id="rUpdated"></div></div><span class="pill">Projection mode</span></div>
+  </div>
+
+  <div class="grid">
+    <div class="card"><div class="label">Accessible pot em 2030</div><div class="value" id="rStartPot"></div><div class="small">ETFs + venda da casa projetada</div></div>
+    <div class="card"><div class="label">Gasto do portfólio</div><div class="value" id="rAnnualSpend"></div><div class="small" id="rMonthlySpend"></div></div>
+    <div class="card"><div class="label">Withdrawal rate inicial</div><div class="value" id="rWithdrawalRate"></div><div class="small">Sobre o pote acessível</div></div>
+    <div class="card"><div class="label">Lifestyle anual</div><div class="value" id="rLifestyle"></div><div class="small">€30k trabalho + €30k portfólio</div></div>
+  </div>
+
+  <section class="card">
+    <div class="chart-head"><div><h2>Como o pote pode evoluir</h2><div class="legend"><span><i class="dot" style="background:#9aa4bc"></i>0%</span><span><i class="dot" style="background:#b99cff"></i>2%</span><span><i class="dot" style="background:#f4c95d"></i>4% central</span><span><i class="dot" style="background:#35d07f"></i>6%</span></div></div><div class="small">Todos os cenários retiram €30k por ano. A pensão fica separada.</div></div>
+    <svg id="rPotChart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg>
+  </section>
+
+  <div class="outcomes">
+    <div class="outcome"><div class="label">Pote aos 50 • cenário 4%</div><div class="n amber" id="rEnd4"></div><div class="caption" id="rEnd4Change"></div></div>
+    <div class="outcome"><div class="label">Total retirado 2030–2037</div><div class="n" id="rTotalWithdrawn"></div><div class="caption">8 anos × €30k</div></div>
+    <div class="outcome"><div class="label">Retornos cobrem</div><div class="n green" id="rReturnCoverage"></div><div class="caption">Dos gastos no cenário 4%</div></div>
+  </div>
+
+  <div class="two">
+    <section class="card">
+      <h2>💸 Gasto vs rendimento • cenário 4%</h2>
+      <svg id="rCashflowChart" class="margin-chart" viewBox="0 0 900 235" preserveAspectRatio="none"></svg>
+      <div class="small">Se o rendimento anual for menor que €30k, a diferença sai do principal. Se superar €30k, o pote cresce mesmo depois do gasto.</div>
+    </section>
+    <section class="card">
+      <h2>🧭 Bridge até a pensão</h2>
+      <div class="row"><span>Anos planejados</span><b id="rBridgeYears"></b></div>
+      <div class="row" style="margin-top:9px"><span>Pote inicial</span><b id="rBridgeStart"></b></div>
+      <div class="row" style="margin-top:9px"><span>Pote projetado aos 50 • 4%</span><b id="rBridgeEnd"></b></div>
+      <div class="row" style="margin-top:9px"><span>Principal consumido</span><b id="rPrincipalUsed"></b></div>
+      <div class="callout small" id="rBridgeInsight"></div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>📊 Projection vs Actual</h2>
+    <table><thead><tr><th>Ano</th><th>Budget</th><th>Actual spend</th><th>Investment return</th><th>End pot</th></tr></thead><tbody id="rYearTable"></tbody></table>
+    <div class="small" style="margin-top:10px">Até a aposentadoria, mostramos projeções. Quando houver dados reais, o ano correspondente passa a usar gasto, rendimento e saldo reais.</div>
+  </section>
+
+  <div class="two">
+    <section class="card">
+      <h2>📅 Spending tracker</h2>
+      <div class="row"><span>Budget mensal</span><b id="rMonthlyBudget"></b></div>
+      <div class="row" style="margin-top:9px"><span>Gasto real este mês</span><b>—</b></div>
+      <div class="bar" style="margin:13px 0 7px"><i style="width:0%"></i></div>
+      <div class="small">Começará a ser preenchido quando a aposentadoria iniciar.</div>
+    </section>
+    <section class="card">
+      <h2>📈 Return tracker</h2>
+      <div class="row"><span>Retorno do ano</span><b>—</b></div>
+      <div class="row" style="margin-top:9px"><span>Gasto acumulado</span><b>—</b></div>
+      <div class="row" style="margin-top:9px"><span>Principal consumido</span><b>—</b></div>
+      <div class="small" style="margin-top:12px">Depois, esta seção mostrará se os gastos estão sendo pagos pelos rendimentos ou pelo principal.</div>
+    </section>
+  </div>
+
+  <section class="card">
+    <h2>Premissas do bridge</h2>
+    <div class="small">Pote acessível projetado de €622k em 2030, retirada do portfólio de €30k/ano e €30k/ano vindos de trabalho. Os €250k da venda da casa continuam sendo uma premissa futura, não patrimônio atual. A pensão fica separada.</div>
+  </section>
+</div>
+<footer>FIRE Hub • Accumulation + Retirement Spending</footer>
 </main>
 <script>
 const k=v=>'€'+(v/1000).toFixed(1)+'k';
@@ -202,5 +281,91 @@ function drawMargin(h){
  arr.forEach((a,i)=>{const c=a.v>=0?'#35d07f':'#ff7272';s+='<circle cx="'+x(i)+'" cy="'+y(a.v)+'" r="5" fill="'+c+'"/><text x="'+(x(i)-15)+'" y="'+(H-10)+'" fill="#9aa4bc" font-size="10">'+a.label+'</text>'});
  svg.innerHTML=s;
 }
+
+function setupTabs(){
+ const buttons=[...document.querySelectorAll('.tabbtn')];
+ const panels=[...document.querySelectorAll('.tab-panel')];
+ function activate(id,push=true){
+   buttons.forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+   panels.forEach(p=>p.classList.toggle('active',p.id===id));
+   const retirement=id==='retirementPanel';
+   const badge=document.querySelector('#status');
+   if(retirement){
+     badge.textContent='🔵 PROJECTION MODE';
+     badge.classList.add('retirement-mode');
+   }else{
+     badge.textContent='🟢 ON TRACK';
+     badge.classList.remove('retirement-mode');
+   }
+   if(push){
+     const url=new URL(location.href);
+     url.searchParams.set('tab',retirement?'retirement':'fire');
+     history.replaceState(null,'',url);
+   }
+ }
+ buttons.forEach(b=>b.addEventListener('click',()=>activate(b.dataset.tab)));
+ const wanted=new URLSearchParams(location.search).get('tab');
+ activate(wanted==='retirement'?'retirementPanel':'firePanel',false);
+}
+setupTabs();
+
+fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
+ const a=d.assumptions,years=a.bridge_end_year-a.retirement_start_year+1;
+ document.querySelector('#rUpdated').textContent='Plano atualizado em '+new Date(d.updated_at).toLocaleDateString('pt-BR');
+ document.querySelector('#rStartPot').textContent=fmt(a.starting_accessible_pot);
+ document.querySelector('#rAnnualSpend').textContent=fmt(a.annual_portfolio_spend)+'/ano';
+ document.querySelector('#rMonthlySpend').textContent=fmt(a.monthly_portfolio_spend)+'/mês';
+ document.querySelector('#rWithdrawalRate').textContent=(a.annual_portfolio_spend/a.starting_accessible_pot*100).toFixed(2)+'%';
+ document.querySelector('#rLifestyle').textContent=fmt(a.annual_total_lifestyle);
+ const scenarios=a.scenario_rates.map(rate=>rProject(a,rate));
+ const s4=scenarios.find(s=>Math.abs(s.rate-.04)<.0001);
+ document.querySelector('#rEnd4').textContent=fmt(s4.rows[s4.rows.length-1].end);
+ document.querySelector('#rEnd4Change').textContent='Variação líquida: '+fmt(s4.rows[s4.rows.length-1].end-a.starting_accessible_pot);
+ document.querySelector('#rTotalWithdrawn').textContent=fmt(a.annual_portfolio_spend*years);
+ const totalReturns=s4.rows.reduce((sum,r)=>sum+r.growth,0);
+ document.querySelector('#rReturnCoverage').textContent=(totalReturns/(a.annual_portfolio_spend*years)*100).toFixed(1)+'%';
+ document.querySelector('#rBridgeYears').textContent=years+' anos';
+ document.querySelector('#rBridgeStart').textContent=fmt(a.starting_accessible_pot);
+ document.querySelector('#rBridgeEnd').textContent=fmt(s4.rows[s4.rows.length-1].end);
+ const principalUsed=a.starting_accessible_pot-s4.rows[s4.rows.length-1].end;
+ document.querySelector('#rPrincipalUsed').textContent=fmt(Math.max(0,principalUsed));
+ document.querySelector('#rBridgeInsight').innerHTML='<strong>Leitura:</strong> no cenário de 4%, o pote termina o bridge em '+fmt(s4.rows[s4.rows.length-1].end)+'. Apesar de retirar '+fmt(a.annual_portfolio_spend*years)+', o principal cai apenas '+fmt(Math.max(0,principalUsed))+' porque os retornos projetados financiam grande parte dos gastos.';
+ document.querySelector('#rMonthlyBudget').textContent='€'+Math.round(a.monthly_portfolio_spend).toLocaleString('en-IE');
+ rDrawPot(scenarios,a);rDrawCashflow(s4.rows,a);rRenderYears(s4.rows,d);
+});
+function rProject(a,rate){
+ let pot=a.starting_accessible_pot,rows=[];
+ for(let y=a.retirement_start_year;y<=a.bridge_end_year;y++){
+   const start=pot,growth=start*rate,spend=a.annual_portfolio_spend,end=start+growth-spend;
+   rows.push({year:y,start,growth,spend,end});pot=end;
+ }
+ return {rate,rows};
+}
+function rDrawPot(scenarios,a){
+ const svg=document.querySelector('#rPotChart'),W=900,H=300,p={l:55,r:16,t:18,b:38};
+ const vals=scenarios.flatMap(s=>s.rows.flatMap(r=>[r.start,r.end])),mn=Math.min(...vals)*.94,mx=Math.max(...vals)*1.05;
+ const years=[a.retirement_start_year,...scenarios[0].rows.map(r=>r.year)];
+ const x=i=>p.l+i*(W-p.l-p.r)/(years.length-1),y=v=>p.t+(mx-v)*(H-p.t-p.b)/(mx-mn);
+ const colors=['#9aa4bc','#b99cff','#f4c95d','#35d07f'];let out='';
+ for(let i=0;i<5;i++){const yy=p.t+i*(H-p.t-p.b)/4;out+='<line x1="'+p.l+'" y1="'+yy+'" x2="'+(W-p.r)+'" y2="'+yy+'" stroke="#202944"/><text x="4" y="'+(yy+4)+'" fill="#9aa4bc" font-size="10">'+Math.round((mx-i*(mx-mn)/4)/1000)+'k</text>'}
+ scenarios.forEach((s,j)=>{const pts=[a.starting_accessible_pot,...s.rows.map(r=>r.end)].map((v,i)=>x(i)+','+y(v)).join(' ');out+='<polyline fill="none" stroke="'+colors[j]+'" stroke-width="'+(s.rate===.04?4:2.5)+'" '+(s.rate===.04?'':'stroke-opacity=".8"')+' points="'+pts+'"/>'});
+ years.forEach((yr,i)=>out+='<text x="'+(x(i)-14)+'" y="'+(H-10)+'" fill="#9aa4bc" font-size="10">'+yr+'</text>');
+ svg.innerHTML=out;
+}
+function rDrawCashflow(rows,a){
+ const svg=document.querySelector('#rCashflowChart'),W=900,H=235,p={l:48,r:16,t:15,b:36};
+ const max=Math.max(a.annual_portfolio_spend,...rows.map(r=>r.growth))*1.15,x=i=>p.l+i*(W-p.l-p.r)/(rows.length-1),y=v=>p.t+(max-v)*(H-p.t-p.b)/max;let s='';
+ for(let i=0;i<4;i++){const yy=p.t+i*(H-p.t-p.b)/3;s+='<line x1="'+p.l+'" y1="'+yy+'" x2="'+(W-p.r)+'" y2="'+yy+'" stroke="#202944"/>'}
+ s+='<polyline fill="none" stroke="#35d07f" stroke-width="3" points="'+rows.map((r,i)=>x(i)+','+y(r.growth)).join(' ')+'"/>';
+ s+='<polyline fill="none" stroke="#ff7272" stroke-width="3" stroke-dasharray="7 5" points="'+rows.map((r,i)=>x(i)+','+y(r.spend)).join(' ')+'"/>';
+ rows.forEach((r,i)=>{s+='<circle cx="'+x(i)+'" cy="'+y(r.growth)+'" r="4" fill="#35d07f"/><text x="'+(x(i)-13)+'" y="'+(H-10)+'" fill="#9aa4bc" font-size="10">'+r.year+'</text>'});
+ svg.innerHTML=s;
+}
+function rRenderYears(rows,d){
+ const tb=document.querySelector('#rYearTable'),actualMap=new Map((d.actuals||[]).map(x=>[x.year,x]));
+ tb.innerHTML='';
+ rows.forEach(r=>{const a=actualMap.get(r.year),tr=document.createElement('tr');tr.innerHTML='<td>'+r.year+'</td><td>'+fmt(r.spend)+'</td><td>'+(a&&a.spend!=null?fmt(a.spend):'—')+'</td><td>'+(a&&a.investment_return!=null?fmt(a.investment_return):fmt(r.growth)+' proj.')+'</td><td>'+(a&&a.end_pot!=null?fmt(a.end_pot):fmt(r.end)+' proj.')+'</td>';tb.appendChild(tr)});
+}
+
 </script>
 </body></html>
