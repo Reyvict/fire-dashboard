@@ -1,0 +1,31 @@
+{
+  "updated_at": "2026-09-26T08:03:00+01:00",
+  "phase": "projection",
+  "assumptions": {
+    "retirement_start_year": 2030,
+    "bridge_end_year": 2037,
+    "starting_accessible_pot": 622000,
+    "annual_portfolio_spend": 30000,
+    "monthly_portfolio_spend": 2500,
+    "annual_side_income": 30000,
+    "annual_total_lifestyle": 60000,
+    "pension_separate": true,
+    "central_return_rate": 0.04,
+    "scenario_rates": [
+      0,
+      0.02,
+      0.04,
+      0.06
+    ],
+    "inflation_rate": 0,
+    "note": "First version keeps the €30k annual portfolio spending flat, as requested. House-sale proceeds are a future planning assumption until actually realized."
+  },
+  "source_plan": {
+    "projected_etfs_2029": 372000,
+    "expected_house_proceeds": 250000,
+    "projected_accessible_pot_2030": 622000,
+    "projected_pension_2029": 632000
+  },
+  "actuals": [],
+  "spending_categories": []
+}
