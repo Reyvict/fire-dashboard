@@ -36,6 +36,21 @@ footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
 
 <section class="card"><div class="row"><div><h2>Progresso até €1.004m</h2><div class="big" id="progressPct"></div></div><div class="muted" id="remaining"></div></div><div class="bar" style="margin-top:11px"><i id="progressBar"></i></div></section>
 
+<div class="two">
+<section class="card">
+  <h2>🎯 Required return</h2>
+  <div class="big" id="requiredReturn"></div>
+  <div class="small" id="requiredReturnDetail"></div>
+  <div class="callout small" id="returnCompare"></div>
+</section>
+<section class="card">
+  <h2>🛡️ FIRE buffer</h2>
+  <div class="big green" id="bufferEuro"></div>
+  <div class="small" id="bufferMonths"></div>
+  <div class="callout small">Mostra quanta margem existe sobre a trajetória antes de você ficar atrás do plano.</div>
+</section>
+</div>
+
 <section class="card">
   <div class="chart-head"><div><h2>Onde estou → onde deveria estar → onde posso chegar</h2><div class="legend"><span><i class="dot" style="background:#35d07f"></i>Actual</span><span><i class="dot" style="background:#7c9cff"></i>Plan</span><span><i class="dot" style="background:#f4c95d"></i>Conservative 4%</span></div></div><div class="small">4% é um cenário, não uma previsão. Parte do patrimônio atual e mantém €4k/mês de aportes.</div></div>
   <svg id="projectionChart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg>
@@ -83,6 +98,16 @@ fetch('data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
  document.querySelector('#marginPct').textContent=(marginPct>=0?'+':'')+marginPct.toFixed(2)+'%';
  document.querySelector('#marginNow').textContent=(margin>=0?'+':'-')+k(Math.abs(margin));
  document.querySelector('#progressPct').textContent=progress.toFixed(1)+'%';document.querySelector('#remaining').textContent='Faltam '+fmt(d.final_target-d.core_fire);document.querySelector('#progressBar').style.width=clamp(progress,0,100)+'%';
+ const monthlyContribution=(d.contribution_plan&&d.contribution_plan.total_monthly)||4000;
+ const updatedDate=new Date(d.updated_at);
+ const monthsRemaining=Math.max(0,(2029-updatedDate.getUTCFullYear())*12+(11-updatedDate.getUTCMonth()));
+ const req=requiredAnnualReturn(d.core_fire,monthlyContribution,d.final_target,monthsRemaining);
+ document.querySelector('#requiredReturn').textContent=req===null?'—':(req*100).toFixed(1)+'% p.a.';
+ document.querySelector('#requiredReturnDetail').textContent='Retorno anualizado necessário pelos próximos '+monthsRemaining+' meses, mantendo '+fmt(monthlyContribution)+'/mês em aportes.';
+ document.querySelector('#returnCompare').innerHTML='<strong>Referência:</strong> Conservative 4% • Required '+(req===null?'—':(req*100).toFixed(1)+'%')+' • Plan ~7.5%';
+ const bufferMonths=monthlyContribution>0?margin/monthlyContribution:0;
+ document.querySelector('#bufferEuro').textContent=(margin>=0?'+':'-')+fmt(Math.abs(margin));
+ document.querySelector('#bufferMonths').textContent=margin>=0?'Equivale a '+bufferMonths.toFixed(1)+' meses dos seus aportes planejados.':'Déficit equivalente a '+Math.abs(bufferMonths).toFixed(1)+' meses de aportes.';
 
  const es=d.etfs/d.core_fire*100,ps=d.pension/d.core_fire*100;
  document.querySelector('#etfs').textContent=fmt(d.etfs)+' ETFs';document.querySelector('#pension').textContent=fmt(d.pension)+' Pensões';
@@ -106,6 +131,24 @@ fetch('data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
  const gap=d.final_target-conservativeEnd;
  document.querySelector('#outlookNote').innerHTML=gap>0?'<strong>Leitura:</strong> no cenário conservador de 4%, você terminaria cerca de '+fmt(gap)+' abaixo do plano de '+fmt(d.final_target)+'. A linha serve como stress-test leve: mostra quanto o resultado depende de retornos acima de 4% e/ou de continuar acumulando uma margem positiva sobre o plano.':'<strong>Leitura:</strong> até o cenário conservador de 4% alcança a meta final nas premissas atuais.';
 });
+
+function requiredAnnualReturn(current,monthlyContribution,target,months){
+ if(months<=0)return current>=target?0:null;
+ const endValue=annual=>{
+   const monthlyRate=Math.pow(1+annual,1/12)-1;
+   let value=current;
+   for(let i=0;i<months;i++)value=value*(1+monthlyRate)+monthlyContribution;
+   return value;
+ };
+ let lo=-0.99,hi=1;
+ while(endValue(hi)<target&&hi<10)hi*=2;
+ if(endValue(hi)<target)return null;
+ for(let i=0;i<80;i++){
+   const mid=(lo+hi)/2;
+   if(endValue(mid)<target)lo=mid;else hi=mid;
+ }
+ return hi;
+}
 
 function renderMilestones(d){
  const tb=document.querySelector('#milestones');tb.innerHTML='';
