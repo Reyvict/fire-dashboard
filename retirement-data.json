@@ -1,30 +1,67 @@
 {
-  "updated_at": "2026-09-26T08:03:00+01:00",
+  "updated_at": "2026-10-02T08:40:00+01:00",
   "phase": "projection",
   "assumptions": {
     "retirement_start_year": 2030,
-    "bridge_end_year": 2037,
-    "starting_accessible_pot": 622000,
-    "annual_portfolio_spend": 30000,
-    "monthly_portfolio_spend": 2500,
-    "annual_side_income": 30000,
-    "annual_total_lifestyle": 60000,
-    "pension_separate": true,
+    "projection_end_year": 2060,
+    "lifestyle_annual_2030": 60000,
+    "inflation_rate": 0.02,
+    "barista_income_owner": "Rosely",
+    "barista_income_gross_2030": 30000,
+    "barista_income_growth_rate": 0,
+    "barista_start_year": 2030,
+    "barista_end_year": 2037,
+    "barista_employment_type": "employee",
+    "house_cash_2030": 250000,
+    "cash_return_rate": 0,
     "central_return_rate": 0.04,
-    "scenario_rates": [
-      0,
-      0.02,
-      0.04,
-      0.06
-    ],
-    "inflation_rate": 0,
-    "note": "First version keeps the €30k annual portfolio spending flat, as requested. House-sale proceeds are a future planning assumption until actually realized."
+    "scenario_rates": [0.02,0.04,0.05,0.06],
+    "default_pension_access_age": 55,
+    "pension_access_age_scenarios": [50,55,60],
+    "withdrawal_policy": "salary_net_then_house_cash_then_pension_when_eligible_then_etfs",
+    "pension_withdrawal_allocation": "proportional_between_eligible_pots",
+    "etf_tax_method": "proportional_cost_basis_proxy",
+    "etf_tax_ownership_assumption": "single_taxpayer_conservative",
+    "tax_brackets_indexed_with_inflation_from_2030": true,
+    "state_pension_included": false,
+    "note": "Long-range planning model. Tax rules are a current-law proxy, not a forecast. House proceeds remain a future assumption until realized."
   },
-  "source_plan": {
-    "projected_etfs_2029": 372000,
-    "expected_house_proceeds": 250000,
-    "projected_accessible_pot_2030": 622000,
-    "projected_pension_2029": 632000
+  "people": {
+    "Victor": {"birth_date":"1987-07-20","pension_balance_snapshot":203117,"monthly_pension_contribution":300,"projected_pension_2030":243188},
+    "Rosely": {"birth_date":"1989-05-10","pension_balance_snapshot":234932,"monthly_pension_contribution":2000,"projected_pension_2030":349924}
+  },
+  "projection_inputs": {
+    "pension_snapshot_date":"2026-10-02",
+    "months_to_retirement":39,
+    "projected_etfs_2030":371800,
+    "projected_etf_cost_basis_2030":241200,
+    "expected_house_proceeds_2030":250000,
+    "projected_total_pensions_2030":593112,
+    "projected_total_assets_2030":1214912,
+    "etf_cost_basis_note":"Planning proxy from prior FIRE projection; replace with broker tax-lot history before real withdrawals."
+  },
+  "tax_rules": {
+    "jurisdiction":"Spain / Comunitat Valenciana",
+    "reference":"2025 IRPF scales + 2026 employee Social Security; used as a 2030 planning proxy",
+    "employee_social_security_rate":0.065,
+    "general_work_expense_deduction":2000,
+    "state_personal_minimum":5550,
+    "valencia_personal_minimum":6105,
+    "state_general_brackets":[
+      {"cap":12450,"rate":0.095},{"cap":20200,"rate":0.12},{"cap":35200,"rate":0.15},{"cap":60000,"rate":0.185},{"cap":300000,"rate":0.225},{"cap":999999999,"rate":0.245}
+    ],
+    "valencia_general_brackets":[
+      {"cap":12000,"rate":0.09},{"cap":22000,"rate":0.12},{"cap":32000,"rate":0.15},{"cap":42000,"rate":0.175},{"cap":52000,"rate":0.2},{"cap":62000,"rate":0.225},{"cap":72000,"rate":0.25},{"cap":100000,"rate":0.265},{"cap":150000,"rate":0.275},{"cap":200000,"rate":0.285},{"cap":999999999,"rate":0.295}
+    ],
+    "savings_brackets":[
+      {"cap":6000,"rate":0.19},{"cap":50000,"rate":0.21},{"cap":200000,"rate":0.23},{"cap":300000,"rate":0.27},{"cap":999999999,"rate":0.3}
+    ],
+    "limitations":[
+      "Does not model deductions, credits, joint filing, child allowances or future law changes.",
+      "ETF gains use a proportional cost-basis proxy rather than Spanish FIFO tax lots.",
+      "Pension eligibility at age 50/55/60 is a scenario assumption and remains subject to each scheme's legal access rules.",
+      "State pensions are excluded."
+    ]
   },
   "actuals": [],
   "spending_categories": []

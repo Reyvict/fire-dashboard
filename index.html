@@ -95,69 +95,117 @@ footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
 </div>
 <div id="retirementPanel" class="tab-panel">
   <div class="card" style="margin-bottom:10px">
-    <div class="row"><div><h2 style="margin-bottom:4px">🏖️ Retirement Spending</h2><div class="small" id="rUpdated"></div></div><span class="pill">Projection mode</span></div>
+    <div class="row">
+      <div><h2 style="margin-bottom:4px">🏖️ Retirement Spending • Tax-Optimized FIRE</h2><div class="small" id="rUpdated"></div></div>
+      <span class="pill">Spain planning model</span>
+    </div>
   </div>
 
   <div class="grid">
-    <div class="card"><div class="label">Accessible pot em 2030</div><div class="value" id="rStartPot"></div><div class="small">ETFs + venda da casa projetada</div></div>
-    <div class="card"><div class="label">Gasto do portfólio</div><div class="value" id="rAnnualSpend"></div><div class="small" id="rMonthlySpend"></div></div>
-    <div class="card"><div class="label">Withdrawal rate inicial</div><div class="value" id="rWithdrawalRate"></div><div class="small">Sobre o pote acessível</div></div>
-    <div class="card"><div class="label">Lifestyle anual</div><div class="value" id="rLifestyle"></div><div class="small">€30k trabalho + €30k portfólio</div></div>
+    <div class="card"><div class="label">Lifestyle em 2030</div><div class="value" id="rLifestyle2030"></div><div class="small">Cresce 2%/ano</div></div>
+    <div class="card"><div class="label">Barista income • Rosely</div><div class="value" id="rBaristaGross"></div><div class="small" id="rBaristaNet"></div></div>
+    <div class="card"><div class="label">Patrimônio projetado 2030</div><div class="value" id="rStartAssets"></div><div class="small">Cash + ETFs + pensões</div></div>
+    <div class="card"><div class="label">Taxa + IRPF projetado</div><div class="value" id="rDefaultTax"></div><div class="small" id="rDefaultTaxCaption"></div></div>
+  </div>
+
+  <div class="outcomes" style="margin-top:9px">
+    <div class="outcome"><div class="label">Primeiro shortfall • cenário padrão</div><div class="n amber" id="rShortfall"></div><div class="caption">4% retorno • acesso à pensão aos 55</div></div>
+    <div class="outcome"><div class="label">Patrimônio aos 55 • Victor</div><div class="n" id="rAssets55"></div><div class="caption">Final de 2042 no cenário padrão</div></div>
+    <div class="outcome"><div class="label">Patrimônio aos 60 • Victor</div><div class="n green" id="rAssets60"></div><div class="caption">Final de 2047 no cenário padrão</div></div>
   </div>
 
   <section class="card">
-    <div class="chart-head"><div><h2>Como o pote pode evoluir</h2><div class="legend"><span><i class="dot" style="background:#9aa4bc"></i>0%</span><span><i class="dot" style="background:#b99cff"></i>2%</span><span><i class="dot" style="background:#f4c95d"></i>4% central</span><span><i class="dot" style="background:#35d07f"></i>6%</span></div></div><div class="small">Todos os cenários retiram €30k por ano. A pensão fica separada.</div></div>
-    <svg id="rPotChart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg>
+    <div class="chart-head">
+      <div>
+        <h2>Patrimônio por bucket • cenário padrão</h2>
+        <div class="legend">
+          <span><i class="dot" style="background:#7c9cff"></i>Cash da casa</span>
+          <span><i class="dot" style="background:#b99cff"></i>ETFs</span>
+          <span><i class="dot" style="background:#35d07f"></i>Pensões</span>
+        </div>
+      </div>
+      <div class="small">4% nominal, lifestyle +2%/ano. O gráfico termina no primeiro ano em que o plano não consegue financiar o lifestyle.</div>
+    </div>
+    <svg id="rBucketChart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg>
   </section>
-
-  <div class="outcomes">
-    <div class="outcome"><div class="label">Pote aos 50 • cenário 4%</div><div class="n amber" id="rEnd4"></div><div class="caption" id="rEnd4Change"></div></div>
-    <div class="outcome"><div class="label">Total retirado 2030–2037</div><div class="n" id="rTotalWithdrawn"></div><div class="caption">8 anos × €30k</div></div>
-    <div class="outcome"><div class="label">Retornos cobrem</div><div class="n green" id="rReturnCoverage"></div><div class="caption">Dos gastos no cenário 4%</div></div>
-  </div>
 
   <div class="two">
     <section class="card">
-      <h2>💸 Gasto vs rendimento • cenário 4%</h2>
-      <svg id="rCashflowChart" class="margin-chart" viewBox="0 0 900 235" preserveAspectRatio="none"></svg>
-      <div class="small">Se o rendimento anual for menor que €30k, a diferença sai do principal. Se superar €30k, o pote cresce mesmo depois do gasto.</div>
+      <h2>🧭 FIRE Income Plan</h2>
+      <div class="row"><span>Cash inicial da casa</span><b id="rHouseCash"></b></div>
+      <div class="row" style="margin-top:9px"><span>ETFs em 2030</span><b id="rEtfStart"></b></div>
+      <div class="row" style="margin-top:9px"><span>Pensões em 2030</span><b id="rPensionStart"></b></div>
+      <div class="row" style="margin-top:9px"><span>Cash termina</span><b id="rCashEndYear"></b></div>
+      <div class="row" style="margin-top:9px"><span>ETF bridge começa</span><b id="rEtfPhaseYear"></b></div>
+      <div class="row" style="margin-top:9px"><span>Pension phase começa</span><b id="rPensionPhaseYear"></b></div>
+      <div class="callout small"><strong>Ordem:</strong> renda líquida da Rosely → cash da casa → pensão quando elegível → ETFs para cobrir qualquer restante. Antes da elegibilidade da pensão, ETFs fazem a ponte.</div>
     </section>
+
     <section class="card">
-      <h2>🧭 Bridge até a pensão</h2>
-      <div class="row"><span>Anos planejados</span><b id="rBridgeYears"></b></div>
-      <div class="row" style="margin-top:9px"><span>Pote inicial</span><b id="rBridgeStart"></b></div>
-      <div class="row" style="margin-top:9px"><span>Pote projetado aos 50 • 4%</span><b id="rBridgeEnd"></b></div>
-      <div class="row" style="margin-top:9px"><span>Principal consumido</span><b id="rPrincipalUsed"></b></div>
-      <div class="callout small" id="rBridgeInsight"></div>
+      <h2>🧾 Tax Strategy • cenário padrão</h2>
+      <div class="row"><span>IRPF sobre salário</span><b id="rSalaryTax"></b></div>
+      <div class="row" style="margin-top:9px"><span>IRPF incremental sobre pensões</span><b id="rPensionTax"></b></div>
+      <div class="row" style="margin-top:9px"><span>Tax sobre ganhos de ETFs</span><b id="rEtfTax"></b></div>
+      <div class="row" style="margin-top:9px"><span>Seguridad Social da Rosely</span><b id="rSocialSecurity"></b></div>
+      <div class="row" style="margin-top:9px"><span>Total de imposto</span><b id="rLifetimeTax"></b></div>
+      <div class="callout small"><strong>Objetivo:</strong> visualizar o imposto ao longo da vida e não apenas minimizar um único ano. Regras fiscais atuais são apenas proxy de planejamento para 2030+.</div>
     </section>
   </div>
 
   <section class="card">
-    <h2>📊 Projection vs Actual</h2>
-    <table><thead><tr><th>Ano</th><th>Budget</th><th>Actual spend</th><th>Investment return</th><th>End pot</th></tr></thead><tbody id="rYearTable"></tbody></table>
-    <div class="small" style="margin-top:10px">Até a aposentadoria, mostramos projeções. Quando houver dados reais, o ano correspondente passa a usar gasto, rendimento e saldo reais.</div>
+    <h2>⚖️ Comparação • começar pensão aos 50 vs 55 vs 60</h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Idade de acesso</th><th>Primeiro uso</th><th>Primeiro shortfall</th><th>Tax acumulado</th><th>Patrimônio V55</th><th>Patrimônio V60</th></tr></thead>
+        <tbody id="rScenarioTable"></tbody>
+      </table>
+    </div>
+    <div class="small" style="margin-top:10px">Cada pessoa só entra no pension phase quando atinge a idade do cenário. Elegibilidade legal real depende das regras de cada scheme.</div>
+  </section>
+
+  <section class="card">
+    <h2>📉 Sensibilidade ao retorno • pensão aos 55</h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Retorno</th><th>Primeiro shortfall</th><th>Patrimônio V55</th><th>Patrimônio V60</th><th>Tax acumulado</th></tr></thead>
+        <tbody id="rSensitivityTable"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>📊 Projection vs Actual • fluxo anual</h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>Ano</th><th>Idade V/R</th><th>Lifestyle</th><th>Work net</th><th>Cash usado</th><th>ETF vendido</th><th>ETF gain</th><th>Pensão bruta</th><th>Tax</th><th>End cash</th><th>End ETF</th><th>End pension</th><th>Net worth</th></tr></thead>
+        <tbody id="rYearTable"></tbody>
+      </table>
+    </div>
+    <div class="small" style="margin-top:10px">Os valores são projeções até existirem actuals. ETF gain usa um cost-basis proporcional como proxy; antes das retiradas reais deve ser substituído por tax lots/FIFO.</div>
   </section>
 
   <div class="two">
     <section class="card">
       <h2>📅 Spending tracker</h2>
-      <div class="row"><span>Budget mensal</span><b id="rMonthlyBudget"></b></div>
+      <div class="row"><span>Budget mensal em 2030</span><b id="rMonthlyBudget"></b></div>
       <div class="row" style="margin-top:9px"><span>Gasto real este mês</span><b>—</b></div>
       <div class="bar" style="margin:13px 0 7px"><i style="width:0%"></i></div>
-      <div class="small">Começará a ser preenchido quando a aposentadoria iniciar.</div>
+      <div class="small">Passará de projection para actual conforme os gastos reais forem adicionados.</div>
     </section>
     <section class="card">
-      <h2>📈 Return tracker</h2>
-      <div class="row"><span>Retorno do ano</span><b>—</b></div>
-      <div class="row" style="margin-top:9px"><span>Gasto acumulado</span><b>—</b></div>
-      <div class="row" style="margin-top:9px"><span>Principal consumido</span><b>—</b></div>
-      <div class="small" style="margin-top:12px">Depois, esta seção mostrará se os gastos estão sendo pagos pelos rendimentos ou pelo principal.</div>
+      <h2>🔎 Premissas que mais importam</h2>
+      <div class="row"><span>Retorno central</span><b>4%</b></div>
+      <div class="row" style="margin-top:9px"><span>Inflação</span><b>2%</b></div>
+      <div class="row" style="margin-top:9px"><span>Barista income</span><b>€30k bruto • Rosely</b></div>
+      <div class="row" style="margin-top:9px"><span>Barista até</span><b>2037</b></div>
+      <div class="row" style="margin-top:9px"><span>State pension</span><b>Não incluída</b></div>
+      <div class="small" style="margin-top:12px">Não incluir State Pension torna o horizonte longo mais conservador. Também não modelamos créditos/deduções familiares ou futuras mudanças fiscais.</div>
     </section>
   </div>
 
   <section class="card">
-    <h2>Premissas do bridge</h2>
-    <div class="small">Pote acessível projetado de €622k em 2030, retirada do portfólio de €30k/ano e €30k/ano vindos de trabalho. Os €250k da venda da casa continuam sendo uma premissa futura, não patrimônio atual. A pensão fica separada.</div>
+    <h2>Premissas fiscais</h2>
+    <div class="small">Residência fiscal: Espanha / Comunitat Valenciana. IRPF usa as escalas atuais como proxy e Seguridad Social de empregado. Os brackets são indexados pela inflação a partir de 2030 apenas para evitar distorção extrema de fiscal drag em uma projeção de 30 anos; isso não é previsão de legislação. ETF tax usa uma escala de savings income e um único contribuinte como hipótese conservadora. O cost basis inicial projetado é €241.2k. House-sale proceeds de €250k continuam sendo uma premissa futura.</div>
   </section>
 </div>
 <footer>FIRE Hub • Accumulation + Retirement Spending</footer>
@@ -310,61 +358,252 @@ function setupTabs(){
 setupTabs();
 
 fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
- const a=d.assumptions,years=a.bridge_end_year-a.retirement_start_year+1;
- document.querySelector('#rUpdated').textContent='Plano atualizado em '+new Date(d.updated_at).toLocaleDateString('pt-BR');
- document.querySelector('#rStartPot').textContent=fmt(a.starting_accessible_pot);
- document.querySelector('#rAnnualSpend').textContent=fmt(a.annual_portfolio_spend)+'/ano';
- document.querySelector('#rMonthlySpend').textContent=fmt(a.monthly_portfolio_spend)+'/mês';
- document.querySelector('#rWithdrawalRate').textContent=(a.annual_portfolio_spend/a.starting_accessible_pot*100).toFixed(2)+'%';
- document.querySelector('#rLifestyle').textContent=fmt(a.annual_total_lifestyle);
- const scenarios=a.scenario_rates.map(rate=>rProject(a,rate));
- const s4=scenarios.find(s=>Math.abs(s.rate-.04)<.0001);
- document.querySelector('#rEnd4').textContent=fmt(s4.rows[s4.rows.length-1].end);
- document.querySelector('#rEnd4Change').textContent='Variação líquida: '+fmt(s4.rows[s4.rows.length-1].end-a.starting_accessible_pot);
- document.querySelector('#rTotalWithdrawn').textContent=fmt(a.annual_portfolio_spend*years);
- const totalReturns=s4.rows.reduce((sum,r)=>sum+r.growth,0);
- document.querySelector('#rReturnCoverage').textContent=(totalReturns/(a.annual_portfolio_spend*years)*100).toFixed(1)+'%';
- document.querySelector('#rBridgeYears').textContent=years+' anos';
- document.querySelector('#rBridgeStart').textContent=fmt(a.starting_accessible_pot);
- document.querySelector('#rBridgeEnd').textContent=fmt(s4.rows[s4.rows.length-1].end);
- const principalUsed=a.starting_accessible_pot-s4.rows[s4.rows.length-1].end;
- document.querySelector('#rPrincipalUsed').textContent=fmt(Math.max(0,principalUsed));
- document.querySelector('#rBridgeInsight').innerHTML='<strong>Leitura:</strong> no cenário de 4%, o pote termina o bridge em '+fmt(s4.rows[s4.rows.length-1].end)+'. Apesar de retirar '+fmt(a.annual_portfolio_spend*years)+', o principal cai apenas '+fmt(Math.max(0,principalUsed))+' porque os retornos projetados financiam grande parte dos gastos.';
- document.querySelector('#rMonthlyBudget').textContent='€'+Math.round(a.monthly_portfolio_spend).toLocaleString('en-IE');
- rDrawPot(scenarios,a);rDrawCashflow(s4.rows,a);rRenderYears(s4.rows,d);
+ const a=d.assumptions,t=d.tax_rules,p=d.projection_inputs;
+ const defaultSim=rSimulate(d,a.default_pension_access_age,a.central_return_rate);
+ const pensionStart=p.projected_total_pensions_2030;
+ const salaryOnly=rGeneralTax(a.barista_income_gross_2030,0,a.retirement_start_year,a,t);
+ const baristaNet=a.barista_income_gross_2030-salaryOnly.tax-salaryOnly.ss;
+
+ document.querySelector('#rUpdated').textContent='Plano atualizado em '+new Date(d.updated_at).toLocaleDateString('pt-BR')+' • projeção até '+a.projection_end_year;
+ document.querySelector('#rLifestyle2030').textContent=rEuro(a.lifestyle_annual_2030);
+ document.querySelector('#rBaristaGross').textContent=rEuro(a.barista_income_gross_2030)+' bruto';
+ document.querySelector('#rBaristaNet').textContent='≈ '+rEuro(baristaNet)+' líquido no proxy fiscal';
+ document.querySelector('#rStartAssets').textContent=fmt(p.projected_total_assets_2030);
+ document.querySelector('#rDefaultTax').textContent=fmt(defaultSim.totalTax);
+ document.querySelector('#rDefaultTaxCaption').textContent='Até '+(defaultSim.firstShortfallYear||a.projection_end_year)+' • SS separada';
+ document.querySelector('#rShortfall').textContent=defaultSim.firstShortfallYear||('>'+a.projection_end_year);
+ document.querySelector('#rAssets55').textContent=rAssetAt(defaultSim,2042);
+ document.querySelector('#rAssets60').textContent=rAssetAt(defaultSim,2047);
+
+ document.querySelector('#rHouseCash').textContent=fmt(a.house_cash_2030);
+ document.querySelector('#rEtfStart').textContent=fmt(p.projected_etfs_2030)+' • basis '+fmt(p.projected_etf_cost_basis_2030);
+ document.querySelector('#rPensionStart').textContent=fmt(pensionStart)+' • Rosely '+fmt(d.people.Rosely.projected_pension_2030)+' / Victor '+fmt(d.people.Victor.projected_pension_2030);
+ document.querySelector('#rCashEndYear').textContent=defaultSim.cashEndYear||'—';
+ document.querySelector('#rEtfPhaseYear').textContent=defaultSim.etfStartYear||'—';
+ document.querySelector('#rPensionPhaseYear').textContent=defaultSim.pensionStartYear||'—';
+
+ document.querySelector('#rSalaryTax').textContent=fmt(defaultSim.salaryTax);
+ document.querySelector('#rPensionTax').textContent=fmt(defaultSim.pensionTax);
+ document.querySelector('#rEtfTax').textContent=fmt(defaultSim.etfTax);
+ document.querySelector('#rSocialSecurity').textContent=fmt(defaultSim.totalSS);
+ document.querySelector('#rLifetimeTax').textContent=fmt(defaultSim.totalTax);
+ document.querySelector('#rMonthlyBudget').textContent=rEuro(a.lifestyle_annual_2030/12);
+
+ rDrawBuckets(defaultSim.rows,a);
+ rRenderScenarioTable(d);
+ rRenderSensitivityTable(d);
+ rRenderRetirementYears(defaultSim.rows,d);
+}).catch(e=>{
+ console.error(e);
+ const el=document.querySelector('#rUpdated');
+ if(el)el.textContent='Erro ao carregar retirement-data.json';
 });
-function rProject(a,rate){
- let pot=a.starting_accessible_pot,rows=[];
- for(let y=a.retirement_start_year;y<=a.bridge_end_year;y++){
-   const start=pot,growth=start*rate,spend=a.annual_portfolio_spend,end=start+growth-spend;
-   rows.push({year:y,start,growth,spend,end});pot=end;
- }
- return {rate,rows};
+
+function rEuro(v){
+ return '€'+Math.round(v||0).toLocaleString('en-IE');
 }
-function rDrawPot(scenarios,a){
- const svg=document.querySelector('#rPotChart'),W=900,H=300,p={l:55,r:16,t:18,b:38};
- const vals=scenarios.flatMap(s=>s.rows.flatMap(r=>[r.start,r.end])),mn=Math.min(...vals)*.94,mx=Math.max(...vals)*1.05;
- const years=[a.retirement_start_year,...scenarios[0].rows.map(r=>r.year)];
- const x=i=>p.l+i*(W-p.l-p.r)/(years.length-1),y=v=>p.t+(mx-v)*(H-p.t-p.b)/(mx-mn);
- const colors=['#9aa4bc','#b99cff','#f4c95d','#35d07f'];let out='';
- for(let i=0;i<5;i++){const yy=p.t+i*(H-p.t-p.b)/4;out+='<line x1="'+p.l+'" y1="'+yy+'" x2="'+(W-p.r)+'" y2="'+yy+'" stroke="#202944"/><text x="4" y="'+(yy+4)+'" fill="#9aa4bc" font-size="10">'+Math.round((mx-i*(mx-mn)/4)/1000)+'k</text>'}
- scenarios.forEach((s,j)=>{const pts=[a.starting_accessible_pot,...s.rows.map(r=>r.end)].map((v,i)=>x(i)+','+y(v)).join(' ');out+='<polyline fill="none" stroke="'+colors[j]+'" stroke-width="'+(s.rate===.04?4:2.5)+'" '+(s.rate===.04?'':'stroke-opacity=".8"')+' points="'+pts+'"/>'});
- years.forEach((yr,i)=>out+='<text x="'+(x(i)-14)+'" y="'+(H-10)+'" fill="#9aa4bc" font-size="10">'+yr+'</text>');
+function rAge(birthDate,year){
+ return year-Number(String(birthDate).slice(0,4));
+}
+function rInflationFactor(a,year){
+ return Math.pow(1+a.inflation_rate,Math.max(0,year-a.retirement_start_year));
+}
+function rIndexedBrackets(brackets,factor){
+ return brackets.map(b=>({cap:b.cap>900000000?b.cap:b.cap*factor,rate:b.rate}));
+}
+function rProgressiveTax(amount,brackets){
+ let tax=0,prev=0;
+ for(const b of brackets){
+   const taxable=Math.max(0,Math.min(amount,b.cap)-prev);
+   tax+=taxable*b.rate;
+   if(amount<=b.cap)break;
+   prev=b.cap;
+ }
+ return tax;
+}
+function rGeneralTax(salary,pension,year,a,t){
+ const f=a.tax_brackets_indexed_with_inflation_from_2030?rInflationFactor(a,year):1;
+ const ss=salary*t.employee_social_security_rate;
+ const workIncome=salary+pension;
+ const deduction=workIncome>0?t.general_work_expense_deduction*f:0;
+ const base=Math.max(0,workIncome-ss-deduction);
+ const sb=rIndexedBrackets(t.state_general_brackets,f),vb=rIndexedBrackets(t.valencia_general_brackets,f);
+ const stateMin=t.state_personal_minimum*f,valMin=t.valencia_personal_minimum*f;
+ const state=Math.max(0,rProgressiveTax(base,sb)-rProgressiveTax(Math.min(base,stateMin),sb));
+ const regional=Math.max(0,rProgressiveTax(base,vb)-rProgressiveTax(Math.min(base,valMin),vb));
+ return {tax:state+regional,ss,base};
+}
+function rSavingsTax(gain,year,a,t){
+ const f=a.tax_brackets_indexed_with_inflation_from_2030?rInflationFactor(a,year):1;
+ return rProgressiveTax(Math.max(0,gain),rIndexedBrackets(t.savings_brackets,f));
+}
+function rSellEtfForNet(etf,costBasis,netNeed,year,a,t){
+ if(netNeed<=0||etf<=0)return {sale:0,gain:0,tax:0,costBasis};
+ const gainRatio=Math.max(0,Math.min(1,(etf-costBasis)/etf));
+ const calc=sale=>{
+   const gain=sale*gainRatio,tax=rSavingsTax(gain,year,a,t);
+   return {net:sale-tax,gain,tax};
+ };
+ const maxCalc=calc(etf);
+ if(maxCalc.net<=netNeed){
+   return {sale:etf,gain:maxCalc.gain,tax:maxCalc.tax,costBasis:0};
+ }
+ let lo=0,hi=etf;
+ for(let i=0;i<70;i++){
+   const mid=(lo+hi)/2;
+   if(calc(mid).net<netNeed)lo=mid;else hi=mid;
+ }
+ const c=calc(hi),principal=hi-c.gain;
+ return {sale:hi,gain:c.gain,tax:c.tax,costBasis:Math.max(0,costBasis-principal)};
+}
+function rPensionForNet(vPot,rPot,roselySalary,netNeed,year,accessAge,d){
+ const a=d.assumptions,t=d.tax_rules;
+ if(netNeed<=0)return {gross:0,victor:0,rosely:0,tax:0};
+ const eligible=[];
+ if(rAge(d.people.Victor.birth_date,year)>=accessAge&&vPot>0)eligible.push({who:'Victor',pot:vPot});
+ if(rAge(d.people.Rosely.birth_date,year)>=accessAge&&rPot>0)eligible.push({who:'Rosely',pot:rPot});
+ const totalPot=eligible.reduce((s,x)=>s+x.pot,0);
+ if(totalPot<=0)return {gross:0,victor:0,rosely:0,tax:0};
+ const calc=gross=>{
+   gross=Math.min(gross,totalPot);
+   let victor=0,rosely=0;
+   eligible.forEach(x=>{
+     const w=gross*x.pot/totalPot;
+     if(x.who==='Victor')victor=w;else rosely=w;
+   });
+   const baseR=rGeneralTax(roselySalary,0,year,a,t).tax;
+   const withR=rGeneralTax(roselySalary,rosely,year,a,t).tax;
+   const baseV=rGeneralTax(0,0,year,a,t).tax;
+   const withV=rGeneralTax(0,victor,year,a,t).tax;
+   const tax=(withR-baseR)+(withV-baseV);
+   return {net:gross-tax,gross,victor,rosely,tax};
+ };
+ const all=calc(totalPot);
+ if(all.net<=netNeed)return all;
+ let lo=0,hi=totalPot;
+ for(let i=0;i<70;i++){
+   const mid=(lo+hi)/2;
+   if(calc(mid).net<netNeed)lo=mid;else hi=mid;
+ }
+ return calc(hi);
+}
+function rSimulate(d,accessAge,returnRate){
+ const a=d.assumptions,t=d.tax_rules,p=d.projection_inputs;
+ let cash=a.house_cash_2030,etf=p.projected_etfs_2030,costBasis=p.projected_etf_cost_basis_2030;
+ let victorP=d.people.Victor.projected_pension_2030,roselyP=d.people.Rosely.projected_pension_2030;
+ const rows=[];
+ let salaryTax=0,pensionTax=0,etfTax=0,totalSS=0,firstShortfallYear=null,cashEndYear=null,etfStartYear=null,pensionStartYear=null;
+ for(let year=a.retirement_start_year;year<=a.projection_end_year;year++){
+   const startCash=cash,startEtf=etf,startVictorP=victorP,startRoselyP=roselyP;
+   cash*=1+a.cash_return_rate;
+   etf*=1+returnRate;victorP*=1+returnRate;roselyP*=1+returnRate;
+   const lifestyle=a.lifestyle_annual_2030*Math.pow(1+a.inflation_rate,year-a.retirement_start_year);
+   const salary=(year>=a.barista_start_year&&year<=a.barista_end_year)?a.barista_income_gross_2030*Math.pow(1+a.barista_income_growth_rate,year-a.barista_start_year):0;
+   const salaryCalc=rGeneralTax(salary,0,year,a,t);
+   const workNet=salary-salaryCalc.tax-salaryCalc.ss;
+   salaryTax+=salaryCalc.tax;totalSS+=salaryCalc.ss;
+   let need=Math.max(0,lifestyle-workNet);
+
+   const cashUsed=Math.min(cash,need);cash-=cashUsed;need-=cashUsed;
+   if(!cashEndYear&&cash<=0.5)cashEndYear=year;
+
+   let pensionGross=0,pensionTaxYear=0,victorWithdraw=0,roselyWithdraw=0;
+   if(need>0){
+     const pr=rPensionForNet(victorP,roselyP,salary,need,year,accessAge,d);
+     pensionGross=pr.gross;pensionTaxYear=pr.tax;victorWithdraw=pr.victor;roselyWithdraw=pr.rosely;
+     if(pensionGross>0&&!pensionStartYear)pensionStartYear=year;
+     victorP=Math.max(0,victorP-victorWithdraw);roselyP=Math.max(0,roselyP-roselyWithdraw);
+     pensionTax+=pensionTaxYear;
+     need=Math.max(0,need-(pensionGross-pensionTaxYear));
+   }
+
+   let etfSale=0,etfGain=0,etfTaxYear=0;
+   if(need>0){
+     const er=rSellEtfForNet(etf,costBasis,need,year,a,t);
+     etfSale=er.sale;etfGain=er.gain;etfTaxYear=er.tax;costBasis=er.costBasis;
+     etf=Math.max(0,etf-etfSale);etfTax+=etfTaxYear;
+     if(etfSale>0&&!etfStartYear)etfStartYear=year;
+     need=Math.max(0,need-(etfSale-etfTaxYear));
+   }
+
+   const totalTaxYear=salaryCalc.tax+pensionTaxYear+etfTaxYear;
+   const pensionEnd=victorP+roselyP,netWorth=cash+etf+pensionEnd;
+   rows.push({
+     year,
+     ageVictor:rAge(d.people.Victor.birth_date,year),
+     ageRosely:rAge(d.people.Rosely.birth_date,year),
+     lifestyle,salaryGross:salary,workNet,cashUsed,etfSale,etfGain,
+     pensionGross,victorWithdraw,roselyWithdraw,
+     salaryTax:salaryCalc.tax,pensionTax:pensionTaxYear,etfTax:etfTaxYear,
+     tax:totalTaxYear,ss:salaryCalc.ss,
+     startCash,startEtf,startPension:startVictorP+startRoselyP,
+     cash,etf,costBasis,victorP,roselyP,pension:pensionEnd,netWorth,
+     shortfall:need
+   });
+   if(need>1){
+     firstShortfallYear=year;
+     break;
+   }
+ }
+ return {
+   accessAge,returnRate,rows,firstShortfallYear,cashEndYear,etfStartYear,pensionStartYear,
+   salaryTax,pensionTax,etfTax,totalTax:salaryTax+pensionTax+etfTax,totalSS
+ };
+}
+function rAssetAt(sim,year){
+ const row=sim.rows.find(r=>r.year===year);
+ return row?fmt(row.netWorth):'—';
+}
+function rDrawBuckets(rows,a){
+ const svg=document.querySelector('#rBucketChart'),W=900,H=300,p={l:55,r:16,t:18,b:38};
+ if(!rows.length){svg.innerHTML='';return}
+ const max=Math.max(...rows.map(r=>r.netWorth))*1.06;
+ const x=i=>p.l+(rows.length===1?0:i*(W-p.l-p.r)/(rows.length-1));
+ const y=v=>p.t+(max-v)*(H-p.t-p.b)/max;
+ let out='';
+ for(let i=0;i<5;i++){
+   const yy=p.t+i*(H-p.t-p.b)/4,val=max-i*max/4;
+   out+='<line x1="'+p.l+'" y1="'+yy+'" x2="'+(W-p.r)+'" y2="'+yy+'" stroke="#202944"/><text x="3" y="'+(yy+4)+'" fill="#9aa4bc" font-size="10">'+Math.round(val/1000)+'k</text>';
+ }
+ const polygon=(topFn,bottomFn,fill)=>{
+   const top=rows.map((r,i)=>x(i)+','+y(topFn(r))).join(' ');
+   const bottom=[...rows].reverse().map((r,rev)=>{const i=rows.length-1-rev;return x(i)+','+y(bottomFn(r))}).join(' ');
+   return '<polygon points="'+top+' '+bottom+'" fill="'+fill+'" fill-opacity=".55"/>';
+ };
+ out+=polygon(r=>r.cash,r=>0,'#7c9cff');
+ out+=polygon(r=>r.cash+r.etf,r=>r.cash,'#b99cff');
+ out+=polygon(r=>r.netWorth,r=>r.cash+r.etf,'#35d07f');
+ out+='<polyline fill="none" stroke="#f5f7fb" stroke-width="2.5" points="'+rows.map((r,i)=>x(i)+','+y(r.netWorth)).join(' ')+'"/>';
+ const step=Math.max(1,Math.floor(rows.length/6));
+ rows.forEach((r,i)=>{if(i%step===0||i===rows.length-1)out+='<text x="'+(x(i)-14)+'" y="'+(H-10)+'" fill="#9aa4bc" font-size="10">'+r.year+'</text>'});
  svg.innerHTML=out;
 }
-function rDrawCashflow(rows,a){
- const svg=document.querySelector('#rCashflowChart'),W=900,H=235,p={l:48,r:16,t:15,b:36};
- const max=Math.max(a.annual_portfolio_spend,...rows.map(r=>r.growth))*1.15,x=i=>p.l+i*(W-p.l-p.r)/(rows.length-1),y=v=>p.t+(max-v)*(H-p.t-p.b)/max;let s='';
- for(let i=0;i<4;i++){const yy=p.t+i*(H-p.t-p.b)/3;s+='<line x1="'+p.l+'" y1="'+yy+'" x2="'+(W-p.r)+'" y2="'+yy+'" stroke="#202944"/>'}
- s+='<polyline fill="none" stroke="#35d07f" stroke-width="3" points="'+rows.map((r,i)=>x(i)+','+y(r.growth)).join(' ')+'"/>';
- s+='<polyline fill="none" stroke="#ff7272" stroke-width="3" stroke-dasharray="7 5" points="'+rows.map((r,i)=>x(i)+','+y(r.spend)).join(' ')+'"/>';
- rows.forEach((r,i)=>{s+='<circle cx="'+x(i)+'" cy="'+y(r.growth)+'" r="4" fill="#35d07f"/><text x="'+(x(i)-13)+'" y="'+(H-10)+'" fill="#9aa4bc" font-size="10">'+r.year+'</text>'});
- svg.innerHTML=s;
+function rRenderScenarioTable(d){
+ const tb=document.querySelector('#rScenarioTable');tb.innerHTML='';
+ d.assumptions.pension_access_age_scenarios.forEach(age=>{
+   const s=rSimulate(d,age,d.assumptions.central_return_rate),tr=document.createElement('tr');
+   tr.innerHTML='<td>'+age+'</td><td>'+(s.pensionStartYear||'—')+'</td><td>'+(s.firstShortfallYear||('>'+d.assumptions.projection_end_year))+'</td><td>'+fmt(s.totalTax)+'</td><td>'+rAssetAt(s,2042)+'</td><td>'+rAssetAt(s,2047)+'</td>';
+   tb.appendChild(tr);
+ });
 }
-function rRenderYears(rows,d){
+function rRenderSensitivityTable(d){
+ const tb=document.querySelector('#rSensitivityTable');tb.innerHTML='';
+ d.assumptions.scenario_rates.forEach(rate=>{
+   const s=rSimulate(d,d.assumptions.default_pension_access_age,rate),tr=document.createElement('tr');
+   tr.innerHTML='<td>'+(rate*100).toFixed(0)+'%</td><td>'+(s.firstShortfallYear||('>'+d.assumptions.projection_end_year))+'</td><td>'+rAssetAt(s,2042)+'</td><td>'+rAssetAt(s,2047)+'</td><td>'+fmt(s.totalTax)+'</td>';
+   tb.appendChild(tr);
+ });
+}
+function rRenderRetirementYears(rows,d){
  const tb=document.querySelector('#rYearTable'),actualMap=new Map((d.actuals||[]).map(x=>[x.year,x]));
  tb.innerHTML='';
- rows.forEach(r=>{const a=actualMap.get(r.year),tr=document.createElement('tr');tr.innerHTML='<td>'+r.year+'</td><td>'+fmt(r.spend)+'</td><td>'+(a&&a.spend!=null?fmt(a.spend):'—')+'</td><td>'+(a&&a.investment_return!=null?fmt(a.investment_return):fmt(r.growth)+' proj.')+'</td><td>'+(a&&a.end_pot!=null?fmt(a.end_pot):fmt(r.end)+' proj.')+'</td>';tb.appendChild(tr)});
+ rows.forEach(r=>{
+   const tr=document.createElement('tr'),actual=actualMap.get(r.year);
+   const lifestyle=actual&&actual.spend!=null?actual.spend:r.lifestyle;
+   const endNet=actual&&actual.end_pot!=null?actual.end_pot:r.netWorth;
+   tr.innerHTML='<td>'+r.year+'</td><td>'+r.ageVictor+'/'+r.ageRosely+'</td><td>'+rEuro(lifestyle)+'</td><td>'+rEuro(r.workNet)+'</td><td>'+rEuro(r.cashUsed)+'</td><td>'+rEuro(r.etfSale)+'</td><td>'+rEuro(r.etfGain)+'</td><td>'+rEuro(r.pensionGross)+'</td><td>'+rEuro(r.tax)+'</td><td>'+rEuro(r.cash)+'</td><td>'+rEuro(r.etf)+'</td><td>'+rEuro(r.pension)+'</td><td>'+rEuro(endNet)+(r.shortfall>1?' ⚠️':'')+'</td>';
+   tb.appendChild(tr);
+ });
 }
 
 </script>
