@@ -114,6 +114,54 @@ footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
     <div class="outcome"><div class="label">Patrimônio aos 60 • Victor</div><div class="n green" id="rAssets60"></div><div class="caption">Final de 2047 no cenário padrão</div></div>
   </div>
 
+
+  <section class="card" id="rForeverFire">
+    <div class="chart-head">
+      <div><h2>♾️ Forever FIRE • preserve purchasing power</h2><div class="small">Objetivo: financiar €30k reais/ano do patrimônio e preservar o principal em euros de 2030. Os outros €30k líquidos podem vir de trabalho, pensões ou outra renda.</div></div>
+      <span class="pill" id="rForeverStatus">Calculating…</span>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div class="card"><div class="label">Portfolio draw target</div><div class="value" id="rForeverDraw"></div><div class="small">Em euros de 2030 • cresce com inflação</div></div>
+      <div class="card"><div class="label">Outside income target</div><div class="value" id="rOutsideIncome"></div><div class="small">Líquido • trabalho/pensões/outra renda</div></div>
+      <div class="card"><div class="label">Gross salary needed in 2030</div><div class="value" id="rGrossNeeded"></div><div class="small">Para gerar ~€30k líquidos no proxy fiscal</div></div>
+      <div class="card"><div class="label">Gap vs €30k gross barista</div><div class="value" id="rIncomeGap"></div><div class="small">Renda líquida adicional necessária em 2030</div></div>
+    </div>
+    <div class="outcomes" style="margin-top:9px">
+      <div class="outcome"><div class="label">Initial withdrawal rate</div><div class="n green" id="rForeverWR"></div><div class="caption">€30k ÷ patrimônio projetado de 2030</div></div>
+      <div class="outcome"><div class="label">Return needed to preserve real principal</div><div class="n amber" id="rForeverRequiredReturn"></div><div class="caption">Antes de impostos • inflação + withdrawal rate</div></div>
+      <div class="outcome"><div class="label">Monte Carlo • full spending to 2100</div><div class="n" id="rMcSuccess"></div><div class="caption" id="rMcCaption"></div></div>
+    </div>
+    <div class="callout small" id="rForeverInsight"></div>
+  </section>
+
+  <section class="card">
+    <div class="chart-head">
+      <div><h2>Patrimônio real até 2100 • euros de 2030</h2><div class="legend"><span><i class="dot" style="background:#f4c95d"></i>4%</span><span><i class="dot" style="background:#7c9cff"></i>5%</span><span><i class="dot" style="background:#35d07f"></i>6%</span><span><i class="dot" style="background:#f5f7fb"></i>Principal inicial</span></div></div>
+      <div class="small">Retirada de €30k reais/ano, inflação 2%, reserva inicial de 2 anos em cash. Impostos ficam no modelo fiscal detalhado abaixo.</div>
+    </div>
+    <svg id="rForeverChart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg>
+  </section>
+
+  <div class="two">
+    <section class="card">
+      <h2>🛡️ Spending guardrails</h2>
+      <div class="row"><span>Withdrawal rate atual</span><b id="rGuardrailRate"></b></div>
+      <div class="row" style="margin-top:9px"><span>🟢 Green</span><b>≤ 2.5%</b></div>
+      <div class="row" style="margin-top:9px"><span>🟡 Watch</span><b>2.5%–3.0%</b></div>
+      <div class="row" style="margin-top:9px"><span>🔴 Protect principal</span><b>&gt; 3.0%</b></div>
+      <div class="callout small" id="rGuardrailAction"></div>
+    </section>
+    <section class="card">
+      <h2>💶 €250k house cash • drag comparison</h2>
+      <div class="row"><span>Modelo atual em cash</span><b id="rAllCash"></b></div>
+      <div class="row" style="margin-top:9px"><span>Reserva de 2 anos</span><b id="rCashReserve"></b></div>
+      <div class="row" style="margin-top:9px"><span>Capital liberado para investir</span><b id="rInvestableRemainder"></b></div>
+      <div class="row" style="margin-top:9px"><span>MC success • €250k cash</span><b id="rMcAllCash"></b></div>
+      <div class="row" style="margin-top:9px"><span>MC success • 2y reserve</span><b id="rMcReserve"></b></div>
+      <div class="small" style="margin-top:12px">Comparação de planejamento, não instrução para investir os proceeds da casa. Monte Carlo usa 5% retorno médio nominal e 12% volatilidade.</div>
+    </section>
+  </div>
+
   <section class="card">
     <div class="chart-head">
       <div>
@@ -364,7 +412,7 @@ fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
  const salaryOnly=rGeneralTax(a.barista_income_gross_2030,0,a.retirement_start_year,a,t);
  const baristaNet=a.barista_income_gross_2030-salaryOnly.tax-salaryOnly.ss;
 
- document.querySelector('#rUpdated').textContent='Plano atualizado em '+new Date(d.updated_at).toLocaleDateString('pt-BR')+' • projeção até '+a.projection_end_year;
+ document.querySelector('#rUpdated').textContent='Plano atualizado em '+new Date(d.updated_at).toLocaleDateString('pt-BR')+' • fiscal até '+a.projection_end_year+' • Forever FIRE até '+((d.forever_fire&&d.forever_fire.end_year)||2100);
  document.querySelector('#rLifestyle2030').textContent=rEuro(a.lifestyle_annual_2030);
  document.querySelector('#rBaristaGross').textContent=rEuro(a.barista_income_gross_2030)+' bruto';
  document.querySelector('#rBaristaNet').textContent='≈ '+rEuro(baristaNet)+' líquido no proxy fiscal';
@@ -388,6 +436,32 @@ fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
  document.querySelector('#rSocialSecurity').textContent=fmt(defaultSim.totalSS);
  document.querySelector('#rLifetimeTax').textContent=fmt(defaultSim.totalTax);
  document.querySelector('#rMonthlyBudget').textContent=rEuro(a.lifestyle_annual_2030/12);
+ const ff=d.forever_fire,total2030=p.projected_total_assets_2030;
+ const foreverWR=ff.portfolio_withdrawal_real_2030/total2030,requiredNominal=a.inflation_rate+foreverWR;
+ const grossNeeded=rGrossForNet(ff.outside_income_net_target_2030,a.retirement_start_year,a,t);
+ const incomeGap=Math.max(0,ff.outside_income_net_target_2030-baristaNet);
+ const reserve=Math.min(a.house_cash_2030,ff.portfolio_withdrawal_real_2030*ff.cash_strategy.reserve_years);
+ const mcReserve=rMonteCarlo(d,'reserve'),mcAll=rMonteCarlo(d,'all_cash'),guard=rGuardrailStatus(foreverWR,ff.guardrails);
+ document.querySelector('#rForeverDraw').textContent=rEuro(ff.portfolio_withdrawal_real_2030)+'/ano';
+ document.querySelector('#rOutsideIncome').textContent=rEuro(ff.outside_income_net_target_2030)+'/ano';
+ document.querySelector('#rGrossNeeded').textContent='≈ '+rEuro(grossNeeded)+'/ano';
+ document.querySelector('#rIncomeGap').textContent='≈ '+rEuro(incomeGap)+'/ano';
+ document.querySelector('#rForeverWR').textContent=(foreverWR*100).toFixed(2)+'%';
+ document.querySelector('#rForeverRequiredReturn').textContent='≈ '+(requiredNominal*100).toFixed(2)+'% p.a.';
+ document.querySelector('#rMcSuccess').textContent=(mcReserve.successRate*100).toFixed(0)+'%';
+ document.querySelector('#rMcCaption').textContent=ff.monte_carlo.simulations.toLocaleString('en-IE')+' sims • median real 2100 '+fmt(mcReserve.medianRealEnd);
+ const statusOk=a.central_return_rate>=requiredNominal;
+ document.querySelector('#rForeverStatus').textContent=statusOk?'🟢 Expected real-principal margin':'🟡 Central return below preservation rate';
+ document.querySelector('#rForeverStatus').style.color=statusOk?'var(--green)':'var(--amber)';
+ document.querySelector('#rForeverInsight').innerHTML='<strong>Leitura:</strong> '+rEuro(ff.portfolio_withdrawal_real_2030)+' começa em '+(foreverWR*100).toFixed(2)+'% do patrimônio. Preservar o principal em poder de compra exige aproximadamente '+(requiredNominal*100).toFixed(2)+'% nominal antes do drag fiscal. O cenário central atual de '+(a.central_return_rate*100).toFixed(0)+'% fica abaixo disso.';
+ document.querySelector('#rGuardrailRate').textContent=(foreverWR*100).toFixed(2)+'% • '+guard.label;
+ document.querySelector('#rGuardrailAction').innerHTML='<strong>'+guard.label+':</strong> '+guard.action;
+ document.querySelector('#rAllCash').textContent=fmt(a.house_cash_2030)+' @ 0%';
+ document.querySelector('#rCashReserve').textContent=fmt(reserve)+' ('+ff.cash_strategy.reserve_years+' anos)';
+ document.querySelector('#rInvestableRemainder').textContent=fmt(a.house_cash_2030-reserve);
+ document.querySelector('#rMcAllCash').textContent=(mcAll.successRate*100).toFixed(0)+'%';
+ document.querySelector('#rMcReserve').textContent=(mcReserve.successRate*100).toFixed(0)+'%';
+ rDrawForever(ff.deterministic_rates.map(rate=>rForeverScenario(d,rate)),d);
 
  rDrawBuckets(defaultSim.rows,a);
  rRenderScenarioTable(d);
@@ -398,6 +472,63 @@ fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
  const el=document.querySelector('#rUpdated');
  if(el)el.textContent='Erro ao carregar retirement-data.json';
 });
+
+
+function rGrossForNet(targetNet,year,a,t){
+ let lo=0,hi=Math.max(targetNet*2,50000);
+ const net=g=>{const x=rGeneralTax(g,0,year,a,t);return g-x.tax-x.ss};
+ while(net(hi)<targetNet&&hi<1000000)hi*=1.5;
+ for(let i=0;i<70;i++){const m=(lo+hi)/2;if(net(m)<targetNet)lo=m;else hi=m}
+ return hi;
+}
+function rGuardrailStatus(rate,g){
+ if(rate<=g.green_max_withdrawal_rate)return {label:'🟢 Green',action:'Mantenha €30k reais como teto de planejamento e reavalie anualmente.'};
+ if(rate<=g.watch_max_withdrawal_rate)return {label:'🟡 Watch',action:'Congele o aumento pela inflação e evite elevar gastos discricionários até voltar a 2.5% ou menos.'};
+ return {label:'🔴 Protect principal',action:'Reduza o draw discricionário e/ou aumente renda externa até o portfolio draw voltar para 3% ou menos.'};
+}
+function rForeverScenario(d,rate){
+ const a=d.assumptions,p=d.projection_inputs,f=d.forever_fire;
+ let cash=Math.min(a.house_cash_2030,f.portfolio_withdrawal_real_2030*f.cash_strategy.reserve_years),invested=p.projected_total_assets_2030-cash,rows=[];
+ for(let year=a.retirement_start_year;year<=f.end_year;year++){
+  const i=year-a.retirement_start_year;cash*=1+a.cash_return_rate;invested*=1+rate;
+  const w=f.portfolio_withdrawal_real_2030*Math.pow(1+a.inflation_rate,i),c=Math.min(cash,w);cash-=c;
+  const rem=w-c,use=Math.min(invested,rem);invested-=use;
+  const shortfall=Math.max(0,rem-use),real=(cash+invested)/Math.pow(1+a.inflation_rate,i);
+  rows.push({year,real:Math.max(0,real),shortfall});
+  if(shortfall>1){for(let y=year+1;y<=f.end_year;y++)rows.push({year:y,real:0,shortfall:1});break}
+ }
+ return {rate,rows};
+}
+function rMulberry32(seed){return function(){let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+function rNormal(rand){let u=0,v=0;while(!u)u=rand();while(!v)v=rand();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function rPct(a,p){const x=(a.length-1)*p,i=Math.floor(x),r=x-i;return a[i+1]!==undefined?a[i]+r*(a[i+1]-a[i]):a[i]}
+function rMonteCarlo(d,mode){
+ const a=d.assumptions,p=d.projection_inputs,f=d.forever_fire,m=f.monte_carlo,rand=rMulberry32(m.seed),ends=[];let okN=0;
+ const startCash=mode==='all_cash'?a.house_cash_2030:Math.min(a.house_cash_2030,f.portfolio_withdrawal_real_2030*f.cash_strategy.reserve_years);
+ for(let s=0;s<m.simulations;s++){
+  let cash=startCash,invested=p.projected_total_assets_2030-startCash,ok=true;
+  for(let year=a.retirement_start_year;year<=f.end_year;year++){
+   const i=year-a.retirement_start_year;cash*=1+a.cash_return_rate;
+   invested*=1+Math.max(m.return_floor,m.expected_nominal_return+m.annual_volatility*rNormal(rand));
+   const w=f.portfolio_withdrawal_real_2030*Math.pow(1+a.inflation_rate,i),c=Math.min(cash,w);cash-=c;
+   const rem=w-c;if(invested<rem){ok=false;invested=0;break}invested-=rem;
+  }
+  if(ok)okN++;
+  ends.push(Math.max(0,(cash+invested)/Math.pow(1+a.inflation_rate,f.end_year-a.retirement_start_year)));
+ }
+ ends.sort((x,y)=>x-y);
+ return {successRate:okN/m.simulations,medianRealEnd:rPct(ends,.5),p10:rPct(ends,.1),p90:rPct(ends,.9)};
+}
+function rDrawForever(sc,d){
+ const svg=document.querySelector('#rForeverChart'),W=900,H=300,p={l:58,r:16,t:18,b:38},start=d.projection_inputs.projected_total_assets_2030;
+ const years=sc[0].rows.map(x=>x.year),mx=Math.max(start,...sc.flatMap(s=>s.rows.map(x=>x.real)))*1.06;
+ const x=i=>p.l+i*(W-p.l-p.r)/(years.length-1),y=v=>p.t+(mx-v)*(H-p.t-p.b)/mx,colors=['#f4c95d','#7c9cff','#35d07f'];let out='';
+ for(let i=0;i<5;i++){const yy=p.t+i*(H-p.t-p.b)/4,val=mx-i*mx/4;out+='<line x1="'+p.l+'" y1="'+yy+'" x2="'+(W-p.r)+'" y2="'+yy+'" stroke="#202944"/><text x="3" y="'+(yy+4)+'" fill="#9aa4bc" font-size="10">'+Math.round(val/1000)+'k</text>'}
+ out+='<line x1="'+p.l+'" y1="'+y(start)+'" x2="'+(W-p.r)+'" y2="'+y(start)+'" stroke="#f5f7fb" stroke-width="1.5" stroke-dasharray="4 5"/>';
+ sc.forEach((s,j)=>out+='<polyline fill="none" stroke="'+colors[j]+'" stroke-width="3" points="'+s.rows.map((r,i)=>x(i)+','+y(r.real)).join(' ')+'"/>');
+ [2030,2040,2050,2060,2070,2080,2090,2100].forEach(yr=>{const i=years.indexOf(yr);if(i>=0)out+='<text x="'+(x(i)-13)+'" y="'+(H-10)+'" fill="#9aa4bc" font-size="10">'+yr+'</text>'});
+ svg.innerHTML=out;
+}
 
 function rEuro(v){
  return '€'+Math.round(v||0).toLocaleString('en-IE');
