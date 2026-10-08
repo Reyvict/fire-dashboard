@@ -149,6 +149,34 @@ footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
   </div>
 
 
+
+  <section class="card" id="rBridgeSection">
+    <div class="chart-head">
+      <div>
+        <h2>🌉 Bridge-to-Pension <span class="v2-tag">V2</span></h2>
+        <div class="small">Mede se o capital acessível consegue financiar o período entre o início da aposentadoria e a primeira pensão elegível. Pensões ficam fora do bridge até a idade de acesso.</div>
+      </div>
+      <span class="pill" id="rBridgeStatus">Calculating…</span>
+    </div>
+
+    <div class="grid" style="margin-top:12px">
+      <div class="card"><div class="label">Accessible capital at FIRE</div><div class="value" id="rBridgeAccessible"></div><div class="small">Cash da casa + ETFs projetados em 2030</div></div>
+      <div class="card"><div class="label">Bridge funding need</div><div class="value" id="rBridgeNeed"></div><div class="small" id="rBridgeNeedCaption">Lifestyle gap após renda líquida</div></div>
+      <div class="card"><div class="label">First pension eligible</div><div class="value" id="rBridgeFirstYear"></div><div class="small" id="rBridgeYears"></div></div>
+      <div class="card"><div class="label">Accessible capital remaining</div><div class="value green" id="rBridgeRemaining"></div><div class="small" id="rBridgeBuffer"></div></div>
+    </div>
+
+    <div class="callout small" id="rBridgeInsight"></div>
+
+    <div style="overflow-x:auto;margin-top:10px">
+      <table>
+        <thead><tr><th>Acesso</th><th>1ª pensão</th><th>Bridge</th><th>Gap financiado</th><th>Tax ETF</th><th>Capital restante</th><th>Status</th></tr></thead>
+        <tbody id="rBridgeTable"></tbody>
+      </table>
+    </div>
+    <div class="small" style="margin-top:10px">O cálculo usa a renda líquida barista, inflação do lifestyle, cash primeiro e depois ETFs com o proxy de imposto espanhol. As idades 50/55/60 são cenários de planejamento, não confirmação de elegibilidade legal.</div>
+  </section>
+
   <section class="card" id="rForeverFire">
     <div class="chart-head">
       <div><h2>♾️ Forever FIRE • preserve purchasing power</h2><div class="small">Objetivo: financiar €30k reais/ano do patrimônio e preservar o principal em euros de 2030. Os outros €30k líquidos podem vir de trabalho, pensões ou outra renda.</div></div>
@@ -524,6 +552,22 @@ Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetc
  document.querySelector('#rLifetimeTax').textContent=fmt(defaultSim.totalTax);
  document.querySelector('#rMonthlyBudget').textContent=rEuro(a.lifestyle_annual_2030/12);
  const ff=d.forever_fire,total2030=p.projected_total_assets_2030;
+ const bridgeCfg=d.bridge_to_pension||{default_access_age:a.default_pension_access_age,scenarios:a.pension_access_age_scenarios,safety_buffer_years:2};
+ const bridgeDefault=rBridgeScenario(d,bridgeCfg.default_access_age);
+ document.querySelector('#rBridgeAccessible').textContent=fmt(bridgeDefault.accessibleStart);
+ document.querySelector('#rBridgeNeed').textContent=fmt(bridgeDefault.lifestyleGap);
+ document.querySelector('#rBridgeNeedCaption').textContent='Até '+bridgeDefault.firstPensionYear+' • inclui '+fmt(bridgeDefault.etfTax)+' de tax ETF';
+ document.querySelector('#rBridgeFirstYear').textContent=bridgeDefault.firstPensionYear;
+ document.querySelector('#rBridgeYears').textContent=bridgeDefault.bridgeYears+' anos de bridge • acesso aos '+bridgeCfg.default_access_age;
+ document.querySelector('#rBridgeRemaining').textContent=fmt(bridgeDefault.remainingAccessible);
+ document.querySelector('#rBridgeBuffer').textContent='Safety buffer '+fmt(bridgeDefault.safetyBuffer)+' • '+bridgeCfg.safety_buffer_years+' anos do draw alvo';
+ document.querySelector('#rBridgeStatus').textContent=bridgeDefault.statusLabel;
+ document.querySelector('#rBridgeStatus').style.color=bridgeDefault.status==='green'?'var(--green)':bridgeDefault.status==='amber'?'var(--amber)':'var(--red)';
+ document.querySelector('#rBridgeStatus').style.background=bridgeDefault.status==='green'?'#35d07f15':bridgeDefault.status==='amber'?'#f4c95d18':'#ff727218';
+ document.querySelector('#rBridgeInsight').innerHTML=bridgeDefault.shortfall>1
+   ?'<strong>Gap:</strong> no cenário de acesso aos '+bridgeCfg.default_access_age+', o capital acessível acaba antes da primeira pensão. Shortfall estimado: '+fmt(bridgeDefault.shortfall)+'.'
+   :'<strong>Bridge coberto:</strong> no cenário de acesso aos '+bridgeCfg.default_access_age+', o plano chega à primeira pensão com aproximadamente <strong>'+fmt(bridgeDefault.remainingAccessible)+'</strong> ainda acessíveis, depois de financiar o lifestyle gap e impostos dos ETFs.';
+ rRenderBridgeTable(d);
  const foreverWR=ff.portfolio_withdrawal_real_2030/total2030,requiredNominal=a.inflation_rate+foreverWR;
  const grossNeeded=rGrossForNet(ff.outside_income_net_target_2030,a.retirement_start_year,a,t);
  const incomeGap=Math.max(0,ff.outside_income_net_target_2030-baristaNet);
@@ -571,6 +615,56 @@ function rSyncRetirementFromFire(d,fire){
  const projectedEtfs=rProjectMonthly(fire.etfs,(fire.contribution_plan&&fire.contribution_plan.etfs_monthly)||0,accumulationRate,months),basisRatio=p.projected_etfs_2030>0?p.projected_etf_cost_basis_2030/p.projected_etfs_2030:.65;
  d.people.Victor.pension_balance_snapshot=curV;d.people.Rosely.pension_balance_snapshot=curR;d.people.Victor.projected_pension_2030=projV;d.people.Rosely.projected_pension_2030=projR;
  p.pension_snapshot_date=String(fire.updated_at).slice(0,10);p.months_to_retirement=months;p.projected_etfs_2030=projectedEtfs;p.projected_etf_cost_basis_2030=projectedEtfs*basisRatio;p.projected_total_pensions_2030=projV+projR;p.projected_total_assets_2030=a.house_cash_2030+projectedEtfs+projV+projR;d.synced_fire_at=fire.updated_at;
+}
+
+
+function rBridgeFirstPensionYear(d,accessAge){
+ const start=d.assumptions.retirement_start_year,end=(d.forever_fire&&d.forever_fire.end_year)||2100;
+ for(let year=start;year<=end;year++){
+   if(rAge(d.people.Victor.birth_date,year)>=accessAge||rAge(d.people.Rosely.birth_date,year)>=accessAge)return year;
+ }
+ return end;
+}
+function rBridgeScenario(d,accessAge){
+ const a=d.assumptions,t=d.tax_rules,p=d.projection_inputs,cfg=d.bridge_to_pension||{};
+ const firstPensionYear=rBridgeFirstPensionYear(d,accessAge),bridgeYears=Math.max(0,firstPensionYear-a.retirement_start_year);
+ let cash=a.house_cash_2030,etf=p.projected_etfs_2030,costBasis=p.projected_etf_cost_basis_2030;
+ const accessibleStart=cash+etf;
+ let lifestyleGap=0,etfTax=0,shortfall=0,lastFundedYear=a.retirement_start_year-1;
+ for(let year=a.retirement_start_year;year<firstPensionYear;year++){
+   cash*=1+a.cash_return_rate;
+   etf*=1+a.central_return_rate;
+   const lifestyle=a.lifestyle_annual_2030*Math.pow(1+a.inflation_rate,year-a.retirement_start_year);
+   const salary=(year>=a.barista_start_year&&year<=a.barista_end_year)?a.barista_income_gross_2030*Math.pow(1+a.barista_income_growth_rate,year-a.barista_start_year):0;
+   const salaryCalc=rGeneralTax(salary,0,year,a,t),workNet=salary-salaryCalc.tax-salaryCalc.ss;
+   let need=Math.max(0,lifestyle-workNet);
+   lifestyleGap+=need;
+   const cashUsed=Math.min(cash,need);cash-=cashUsed;need-=cashUsed;
+   if(need>0){
+     const er=rSellEtfForNet(etf,costBasis,need,year,a,t);
+     etf=Math.max(0,etf-er.sale);costBasis=er.costBasis;etfTax+=er.tax;
+     need=Math.max(0,need-(er.sale-er.tax));
+   }
+   lastFundedYear=year;
+   if(need>1){shortfall=need;break}
+ }
+ const remainingAccessible=Math.max(0,cash+etf);
+ const drawBase=(d.forever_fire&&d.forever_fire.portfolio_withdrawal_real_2030)||30000;
+ const bufferYears=cfg.safety_buffer_years||2;
+ const safetyBuffer=drawBase*Math.pow(1+a.inflation_rate,Math.max(0,firstPensionYear-a.retirement_start_year))*bufferYears;
+ const status=shortfall>1?'red':remainingAccessible>=safetyBuffer?'green':'amber';
+ const statusLabel=status==='green'?'🟢 BRIDGE READY':status==='amber'?'🟡 THIN BUFFER':'🔴 BRIDGE GAP';
+ return {accessAge,firstPensionYear,bridgeYears,accessibleStart,lifestyleGap,etfTax,remainingAccessible,safetyBuffer,status,statusLabel,shortfall,lastFundedYear};
+}
+function rRenderBridgeTable(d){
+ const cfg=d.bridge_to_pension||{scenarios:d.assumptions.pension_access_age_scenarios};
+ const tb=document.querySelector('#rBridgeTable');tb.innerHTML='';
+ (cfg.scenarios||[50,55,60]).forEach(age=>{
+   const s=rBridgeScenario(d,age),tr=document.createElement('tr');
+   const pill=s.status==='green'?'🟢 Ready':s.status==='amber'?'🟡 Thin':'🔴 Gap';
+   tr.innerHTML='<td>'+age+'</td><td>'+s.firstPensionYear+'</td><td>'+s.bridgeYears+' anos</td><td>'+fmt(s.lifestyleGap)+'</td><td>'+fmt(s.etfTax)+'</td><td>'+fmt(s.remainingAccessible)+'</td><td><span class="pill" style="color:'+(s.status==='green'?'var(--green)':s.status==='amber'?'var(--amber)':'var(--red)')+'">'+pill+'</span></td>';
+   tb.appendChild(tr);
+ });
 }
 
 function rGrossForNet(targetNet,year,a,t){
