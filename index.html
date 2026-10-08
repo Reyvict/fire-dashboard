@@ -25,14 +25,17 @@ table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;colo
 .tabbtn.active{background:#ffffff0d;color:var(--text)}
 .tab-panel{display:none}.tab-panel.active{display:block}
 .retirement-mode{color:var(--blue)!important;background:#7c9cff18!important;border-color:#7c9cff55!important}
+.scenario-mode{color:var(--amber)!important;background:#f4c95d18!important;border-color:#f4c95d55!important}
+.scenario-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.field{background:#0f1529;border:1px solid #ffffff0c;border-radius:14px;padding:12px}.field label{display:block;font-size:11px;color:var(--muted);margin-bottom:7px}.field input{width:100%;background:#0b1020;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px;font-size:16px;font-weight:750;outline:none}.field input:focus{border-color:var(--blue)}.scenario-result{font-size:28px;font-weight:850;letter-spacing:-.03em}.v2-tag{color:var(--amber);font-size:10px;font-weight:800;margin-left:5px}
 footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
-@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.outcomes{grid-template-columns:1fr}h1{font-size:23px}.value{font-size:21px}.chart-head{display:block}.chart-head .small{text-align:left;margin-top:5px}svg{height:270px}.margin-chart{height:190px}}
+@media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.scenario-controls{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.outcomes{grid-template-columns:1fr}h1{font-size:23px}.value{font-size:21px}.chart-head{display:block}.chart-head .small{text-align:left;margin-top:5px}svg{height:270px}.margin-chart{height:190px}}
 </style>
 </head>
 <body><main>
 <div class="top"><div><h1>🔥 FIRE Hub</h1><div class="sub" id="updated"></div></div><div class="badge" id="status">🟢 ON TRACK</div></div>
 <nav class="tabs" aria-label="Dashboard sections">
   <button class="tabbtn active" id="fireTabBtn" type="button" data-tab="firePanel">🔥 FIRE Accumulation</button>
+  <button class="tabbtn" id="scenarioTabBtn" type="button" data-tab="scenarioPanel">🧪 Scenario Lab</button>
   <button class="tabbtn" id="retirementTabBtn" type="button" data-tab="retirementPanel">🏖️ Retirement Spending</button>
 </nav>
 <div id="firePanel" class="tab-panel active">
@@ -45,6 +48,11 @@ footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
 </div>
 
 <section class="card"><div class="row"><div><h2>Progresso até €1.004m</h2><div class="big" id="progressPct"></div></div><div class="muted" id="remaining"></div></div><div class="bar" style="margin-top:11px"><i id="progressBar"></i></div></section>
+<div class="outcomes" style="margin-top:9px">
+  <div class="outcome"><div class="label">Projected FIRE date <span class="v2-tag">V2</span></div><div class="n green" id="projectedFireDate"></div><div class="caption" id="projectedFireCaption">Plan-rate scenario</div></div>
+  <div class="outcome"><div class="label">Ahead / behind official plan</div><div class="n" id="monthsAhead"></div><div class="caption">Compared with the official end month</div></div>
+  <div class="outcome"><div class="label">Official FIRE date</div><div class="n" id="officialFireDate"></div><div class="caption">Target date stored in the plan</div></div>
+</div>
 
 <div class="two">
 <section class="card">
@@ -62,7 +70,7 @@ footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
 </div>
 
 <section class="card">
-  <div class="chart-head"><div><h2>Onde estou → onde deveria estar → onde posso chegar</h2><div class="legend"><span><i class="dot" style="background:#35d07f"></i>Actual</span><span><i class="dot" style="background:#7c9cff"></i>Plan</span><span><i class="dot" style="background:#f4c95d"></i>Conservative 4%</span></div></div><div class="small">4% é um cenário, não uma previsão. Parte do patrimônio atual e mantém €4k/mês de aportes.</div></div>
+  <div class="chart-head"><div><h2>Onde estou → onde deveria estar → onde posso chegar</h2><div class="legend"><span><i class="dot" style="background:#35d07f"></i>Actual</span><span><i class="dot" style="background:#7c9cff"></i>Plan</span><span><i class="dot" style="background:#f4c95d"></i><span id="conservativeLegendLabel">Conservative</span></span></div></div><div class="small" id="conservativeChartCaption">Cenário conservador, não uma previsão.</div></div>
   <svg id="projectionChart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg>
 </section>
 
@@ -74,7 +82,7 @@ footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
 <section class="card">
 <h2>🔭 End-2029 outlook</h2>
 <div class="outcomes">
-  <div class="outcome"><div class="label">Conservative 4%</div><div class="n amber" id="conservativeEnd"></div><div class="caption">Cenário conservador a partir de hoje, com €4k/mês.</div></div>
+  <div class="outcome"><div class="label" id="conservativeOutcomeLabel">Conservative</div><div class="n amber" id="conservativeEnd"></div><div class="caption" id="conservativeOutcomeCaption">Cenário conservador a partir de hoje.</div></div>
   <div class="outcome"><div class="label">Official plan</div><div class="n" id="planEnd"></div><div class="caption">Trajetória que usamos para a meta FIRE.</div></div>
   <div class="outcome"><div class="label">Current pace</div><div class="n" id="paceEnd"></div><div class="caption" id="paceCaption">Aguardando histórico suficiente.</div></div>
 </div>
@@ -92,6 +100,32 @@ footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
 <section class="card"><h2>Qualidade dos dados</h2><div class="row"><span>Financial Assets Finary</span><b id="official"></b></div><div class="row" style="margin-top:8px"><span>Core FIRE</span><b id="core2"></b></div><div class="small" style="margin-top:12px" id="sync"></div></section>
 
 
+</div>
+
+<div id="scenarioPanel" class="tab-panel">
+  <div class="card" style="margin-bottom:10px">
+    <div class="row">
+      <div><h2 style="margin-bottom:4px">🧪 Scenario Lab <span class="v2-tag">V2</span></h2><div class="small">Teste mudanças sem alterar o plano oficial. Os cálculos partem do Core FIRE mais recente.</div></div>
+      <span class="pill" style="color:var(--amber);background:#f4c95d15">WHAT-IF MODE</span>
+    </div>
+  </div>
+  <section class="card">
+    <h2>Inputs</h2>
+    <div class="scenario-controls">
+      <div class="field"><label for="sMonthly">Aporte mensal</label><input id="sMonthly" type="number" min="0" step="100" inputmode="numeric"></div>
+      <div class="field"><label for="sBonus">Bônus anual investido</label><input id="sBonus" type="number" min="0" step="1000" inputmode="numeric"></div>
+      <div class="field"><label for="sReturn">Retorno nominal anual (%)</label><input id="sReturn" type="number" min="-20" max="30" step="0.1" inputmode="decimal"></div>
+      <div class="field"><label for="sTarget">Meta FIRE</label><input id="sTarget" type="number" min="100000" step="1000" inputmode="numeric"></div>
+    </div>
+    <div class="small" style="margin-top:10px">O bônus é aplicado uma vez por ano no mês configurado no plano. Informe o valor efetivamente investido, já líquido de impostos.</div>
+  </section>
+  <div class="grid" style="margin-top:10px">
+    <div class="card"><div class="label">Scenario FIRE date</div><div class="scenario-result green" id="sFireDate"></div><div class="small" id="sFireDateCaption"></div></div>
+    <div class="card"><div class="label">Tempo ganho vs baseline</div><div class="scenario-result" id="sMonthsSaved"></div><div class="small">Baseline = inputs oficiais atuais</div></div>
+    <div class="card"><div class="label">Valor em Dec/2029</div><div class="scenario-result" id="sEndValue"></div><div class="small" id="sEndValueDelta"></div></div>
+    <div class="card"><div class="label">Retorno necessário até a data oficial</div><div class="scenario-result" id="sRequiredReturn"></div><div class="small">Com os aportes e bônus escolhidos</div></div>
+  </div>
+  <section class="card"><h2>Impacto do cenário</h2><div class="callout small" id="sInsight"></div></section>
 </div>
 <div id="retirementPanel" class="tab-panel">
   <div class="card" style="margin-bottom:10px">
@@ -265,7 +299,11 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const parseMonth=s=>{const [mon,yy]=s.split('/');const map={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};return new Date(Date.UTC(2000+Number(yy),map[mon],15));};
 
 fetch('data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
+ window.__fireData=d;
  const margin=d.core_fire-d.target_today, marginPct=margin/d.target_today*100, progress=d.core_fire/d.final_target*100;
+ const fireStatus=d.status==='on_track'?'🟢 ON TRACK':(margin>=0?'🟢 ON TRACK':'🔴 BEHIND');
+ window.__fireStatusText=fireStatus;
+ if(document.querySelector('#firePanel').classList.contains('active')) document.querySelector('#status').textContent=fireStatus;
  document.querySelector('#updated').textContent='Atualizado em '+new Date(d.updated_at).toLocaleString('pt-BR',{dateStyle:'medium',timeStyle:'short'});
  document.querySelector('#core').textContent=fmt(d.core_fire);document.querySelector('#core2').textContent=fmt(d.core_fire);
  document.querySelector('#todayTarget').textContent=fmt(d.target_today);document.querySelector('#finalTarget').textContent=fmt(d.final_target);
@@ -273,13 +311,28 @@ fetch('data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
  document.querySelector('#marginPct').textContent=(marginPct>=0?'+':'')+marginPct.toFixed(2)+'%';
  document.querySelector('#marginNow').textContent=(margin>=0?'+':'-')+k(Math.abs(margin));
  document.querySelector('#progressPct').textContent=progress.toFixed(1)+'%';document.querySelector('#remaining').textContent='Faltam '+fmt(d.final_target-d.core_fire);document.querySelector('#progressBar').style.width=clamp(progress,0,100)+'%';
+ const planRate=(d.projection&&Number.isFinite(d.projection.plan_rate_annual))?d.projection.plan_rate_annual:0.075;
+ const bonusMonth=(d.scenario_lab&&d.scenario_lab.bonus_month)||3;
+ const projected=estimateFireDate(d.core_fire,(d.contribution_plan&&d.contribution_plan.total_monthly)||4000,planRate,0,d.final_target,new Date(d.updated_at),bonusMonth);
+ const officialDate=parseEndMonth((d.projection&&d.projection.end_month)||'2029-12');
+ const ahead=projected?monthDifference(projected.date,officialDate):null;
+ document.querySelector('#projectedFireDate').textContent=projected?formatMonthYear(projected.date):'—';
+ document.querySelector('#projectedFireCaption').textContent='Assumindo '+(planRate*100).toFixed(1)+'% a.a. e aportes oficiais';
+ document.querySelector('#monthsAhead').textContent=ahead===null?'—':(ahead>0?'+'+ahead+' meses':ahead<0?Math.abs(ahead)+' meses atrás':'On date');
+ document.querySelector('#monthsAhead').className='n '+(ahead!==null&&ahead>=0?'green':'amber');
+ document.querySelector('#officialFireDate').textContent=formatMonthYear(officialDate);
  const monthlyContribution=(d.contribution_plan&&d.contribution_plan.total_monthly)||4000;
  const updatedDate=new Date(d.updated_at);
  const monthsRemaining=Math.max(0,(2029-updatedDate.getUTCFullYear())*12+(11-updatedDate.getUTCMonth()));
  const req=requiredAnnualReturn(d.core_fire,monthlyContribution,d.final_target,monthsRemaining);
  document.querySelector('#requiredReturn').textContent=req===null?'—':(req*100).toFixed(1)+'% p.a.';
  document.querySelector('#requiredReturnDetail').textContent='Retorno anualizado necessário pelos próximos '+monthsRemaining+' meses, mantendo '+fmt(monthlyContribution)+'/mês em aportes.';
- document.querySelector('#returnCompare').innerHTML='<strong>Referência:</strong> Conservative 4% • Required '+(req===null?'—':(req*100).toFixed(1)+'%')+' • Plan ~7.5%';
+ const conservativeRate=(d.projection&&Number.isFinite(d.projection.conservative_rate_annual))?d.projection.conservative_rate_annual:0.04;
+ document.querySelector('#returnCompare').innerHTML='<strong>Referência:</strong> Conservative '+(conservativeRate*100).toFixed(1)+'% • Required '+(req===null?'—':(req*100).toFixed(1)+'%')+' • Plan '+(planRate*100).toFixed(1)+'%';
+ document.querySelector('#conservativeLegendLabel').textContent='Conservative '+(conservativeRate*100).toFixed(1)+'%';
+ document.querySelector('#conservativeChartCaption').textContent=(conservativeRate*100).toFixed(1)+'% é um cenário, não uma previsão. Parte do patrimônio atual e mantém '+fmt(monthlyContribution)+'/mês de aportes.';
+ document.querySelector('#conservativeOutcomeLabel').textContent='Conservative '+(conservativeRate*100).toFixed(1)+'%';
+ document.querySelector('#conservativeOutcomeCaption').textContent='Cenário conservador a partir de hoje, com '+fmt(monthlyContribution)+'/mês.';
  const bufferMonths=monthlyContribution>0?margin/monthlyContribution:0;
  document.querySelector('#bufferEuro').textContent=(margin>=0?'+':'-')+fmt(Math.abs(margin));
  document.querySelector('#bufferMonths').textContent=margin>=0?'Equivale a '+bufferMonths.toFixed(1)+' meses dos seus aportes planejados.':'Déficit equivalente a '+Math.abs(bufferMonths).toFixed(1)+' meses de aportes.';
@@ -300,12 +353,55 @@ fetch('data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
 
  const histDates=d.history.map(h=>new Date(h.date)).filter(x=>!Number.isNaN(x.getTime())).sort((a,b)=>a-b);
  const historyDays=histDates.length>1?(histDates[histDates.length-1]-histDates[0])/86400000:0;
- const minDays=90;
+ const minDays=(d.projection&&d.projection.current_pace_min_history_days)||90;
  document.querySelector('#paceEnd').textContent='—';
  document.querySelector('#paceCaption').textContent='Precisamos de ~'+Math.max(0,Math.ceil(minDays-historyDays))+' dias a mais de histórico para evitar extrapolar ruído de curto prazo.';
  const gap=d.final_target-conservativeEnd;
- document.querySelector('#outlookNote').innerHTML=gap>0?'<strong>Leitura:</strong> no cenário conservador de 4%, você terminaria cerca de '+fmt(gap)+' abaixo do plano de '+fmt(d.final_target)+'. A linha serve como stress-test leve: mostra quanto o resultado depende de retornos acima de 4% e/ou de continuar acumulando uma margem positiva sobre o plano.':'<strong>Leitura:</strong> até o cenário conservador de 4% alcança a meta final nas premissas atuais.';
+ document.querySelector('#outlookNote').innerHTML=gap>0?'<strong>Leitura:</strong> no cenário conservador de '+(conservativeRate*100).toFixed(1)+'%, você terminaria cerca de '+fmt(gap)+' abaixo do plano de '+fmt(d.final_target)+'. A linha serve como stress-test leve.':'<strong>Leitura:</strong> até o cenário conservador de '+(conservativeRate*100).toFixed(1)+'% alcança a meta final nas premissas atuais.';
+ initScenarioLab(d);
 });
+
+
+function parseEndMonth(s){const [y,m]=String(s).split('-').map(Number);return new Date(Date.UTC(y,(m||12)-1,1))}
+function formatMonthYear(date){return date.toLocaleDateString('pt-BR',{month:'short',year:'numeric',timeZone:'UTC'}).replace('.','')}
+function monthDifference(earlier,later){return(later.getUTCFullYear()-earlier.getUTCFullYear())*12+(later.getUTCMonth()-earlier.getUTCMonth())}
+function estimateFireDate(current,monthlyContribution,annualReturn,annualBonus,target,startDate,bonusMonth,maxMonths=240){
+ let value=current;if(value>=target)return{date:new Date(Date.UTC(startDate.getUTCFullYear(),startDate.getUTCMonth(),1)),months:0,value};
+ const mr=Math.pow(1+annualReturn,1/12)-1;let y=startDate.getUTCFullYear(),m=startDate.getUTCMonth();
+ for(let i=1;i<=maxMonths;i++){m++;if(m>11){m=0;y++}value=value*(1+mr)+monthlyContribution;if((m+1)===bonusMonth)value+=annualBonus;if(value>=target)return{date:new Date(Date.UTC(y,m,1)),months:i,value}}
+ return null;
+}
+function valueAtEndMonth(current,monthlyContribution,annualReturn,annualBonus,startDate,endDate,bonusMonth){
+ let value=current,mr=Math.pow(1+annualReturn,1/12)-1,y=startDate.getUTCFullYear(),m=startDate.getUTCMonth(),endYM=endDate.getUTCFullYear()*12+endDate.getUTCMonth();
+ while(y*12+m<endYM){m++;if(m>11){m=0;y++}value=value*(1+mr)+monthlyContribution;if((m+1)===bonusMonth)value+=annualBonus}return value;
+}
+function requiredAnnualReturnWithBonus(current,monthlyContribution,annualBonus,target,startDate,endDate,bonusMonth){
+ const endValue=annual=>valueAtEndMonth(current,monthlyContribution,annual,annualBonus,startDate,endDate,bonusMonth);let lo=-0.95,hi=1;
+ while(endValue(hi)<target&&hi<10)hi*=2;if(endValue(hi)<target)return null;
+ for(let i=0;i<80;i++){const mid=(lo+hi)/2;if(endValue(mid)<target)lo=mid;else hi=mid}return hi;
+}
+function initScenarioLab(d){
+ const cfg=d.scenario_lab||{},planRate=(d.projection&&Number.isFinite(d.projection.plan_rate_annual))?d.projection.plan_rate_annual:0.075;
+ const els={monthly:document.querySelector('#sMonthly'),bonus:document.querySelector('#sBonus'),rate:document.querySelector('#sReturn'),target:document.querySelector('#sTarget')};
+ if(!els.monthly.dataset.ready){els.monthly.value=cfg.default_monthly_contribution??d.contribution_plan.total_monthly;els.bonus.value=cfg.default_annual_bonus??0;els.rate.value=((cfg.default_return_annual??planRate)*100).toFixed(1);els.target.value=cfg.default_target??d.final_target;els.monthly.dataset.ready='1';Object.values(els).forEach(el=>el.addEventListener('input',()=>renderScenarioLab(d)))}
+ renderScenarioLab(d);
+}
+function renderScenarioLab(d){
+ const cfg=d.scenario_lab||{},start=new Date(d.updated_at),bonusMonth=cfg.bonus_month||3;
+ const monthly=Math.max(0,Number(document.querySelector('#sMonthly').value)||0),bonus=Math.max(0,Number(document.querySelector('#sBonus').value)||0),rate=(Number(document.querySelector('#sReturn').value)||0)/100,target=Math.max(1,Number(document.querySelector('#sTarget').value)||d.final_target);
+ const officialEnd=parseEndMonth((d.projection&&d.projection.end_month)||'2029-12'),baseMonthly=d.contribution_plan.total_monthly,baseRate=(d.projection&&d.projection.plan_rate_annual)||0.075;
+ const baseline=estimateFireDate(d.core_fire,baseMonthly,baseRate,0,d.final_target,start,bonusMonth),scenario=estimateFireDate(d.core_fire,monthly,rate,bonus,target,start,bonusMonth);
+ const endValue=valueAtEndMonth(d.core_fire,monthly,rate,bonus,start,officialEnd,bonusMonth),req=requiredAnnualReturnWithBonus(d.core_fire,monthly,bonus,target,start,officialEnd,bonusMonth),saved=(baseline&&scenario)?scenario.months-baseline.months:null;
+ document.querySelector('#sFireDate').textContent=scenario?formatMonthYear(scenario.date):'> '+formatMonthYear(new Date(Date.UTC(start.getUTCFullYear()+20,start.getUTCMonth(),1)));
+ document.querySelector('#sFireDateCaption').textContent=scenario?'Meta atingida em '+scenario.months+' meses':'Meta não atingida no horizonte do simulador';
+ document.querySelector('#sMonthsSaved').textContent=saved===null?'—':saved<0?Math.abs(saved)+' meses antes':saved>0?saved+' meses depois':'Sem mudança';
+ document.querySelector('#sMonthsSaved').className='scenario-result '+(saved!==null&&saved<=0?'green':'amber');
+ document.querySelector('#sEndValue').textContent=fmt(endValue);
+ const delta=endValue-d.final_target;document.querySelector('#sEndValueDelta').textContent=(delta>=0?'+':'-')+fmt(Math.abs(delta))+' vs meta oficial';
+ document.querySelector('#sRequiredReturn').textContent=req===null?'—':(req*100).toFixed(1)+'%';
+ const bonusTxt=bonus>0?' + '+rEuro(bonus)+'/ano de bônus':' sem bônus';
+ document.querySelector('#sInsight').innerHTML='<strong>Cenário:</strong> '+rEuro(monthly)+'/mês'+bonusTxt+' e '+(rate*100).toFixed(1)+'% a.a. '+(scenario?('leva à meta em <strong>'+formatMonthYear(scenario.date)+'</strong>.'):'não chega à meta no horizonte simulado.')+' Isso não altera o plano oficial.';
+}
 
 function requiredAnnualReturn(current,monthlyContribution,target,months){
  if(months<=0)return current>=target?0:null;
@@ -340,7 +436,9 @@ function renderMonthly(d){
 function buildProjection(d){
  const plan=d.monthly.map(m=>({date:parseMonth(m.month),label:m.month,plan:m.core}));
  const updated=new Date(d.updated_at),startMonth=new Date(Date.UTC(updated.getUTCFullYear(),updated.getUTCMonth(),15));
- const annual=0.04,monthlyContribution=(d.contribution_plan&&d.contribution_plan.total_monthly)||4000,mr=Math.pow(1+annual,1/12)-1;
+ const annual=(d.projection&&Number.isFinite(d.projection.conservative_rate_annual))?d.projection.conservative_rate_annual:0.04;
+ const monthlyContribution=(d.projection&&Number.isFinite(d.projection.monthly_contribution))?d.projection.monthly_contribution:((d.contribution_plan&&d.contribution_plan.total_monthly)||4000);
+ const mr=Math.pow(1+annual,1/12)-1;
  let val=d.core_fire,started=false;
  return plan.map(p=>{
    if(!started&&p.date>=startMonth)started=true;
@@ -379,40 +477,29 @@ function drawMargin(h){
 }
 
 function setupTabs(){
- const buttons=[...document.querySelectorAll('.tabbtn')];
- const panels=[...document.querySelectorAll('.tab-panel')];
+ const buttons=[...document.querySelectorAll('.tabbtn')],panels=[...document.querySelectorAll('.tab-panel')];
  function activate(id,push=true){
-   buttons.forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
-   panels.forEach(p=>p.classList.toggle('active',p.id===id));
-   const retirement=id==='retirementPanel';
-   const badge=document.querySelector('#status');
-   if(retirement){
-     badge.textContent='🔵 PROJECTION MODE';
-     badge.classList.add('retirement-mode');
-   }else{
-     badge.textContent='🟢 ON TRACK';
-     badge.classList.remove('retirement-mode');
-   }
-   if(push){
-     const url=new URL(location.href);
-     url.searchParams.set('tab',retirement?'retirement':'fire');
-     history.replaceState(null,'',url);
-   }
+   buttons.forEach(b=>b.classList.toggle('active',b.dataset.tab===id));panels.forEach(p=>p.classList.toggle('active',p.id===id));
+   const retirement=id==='retirementPanel',scenario=id==='scenarioPanel',badge=document.querySelector('#status');badge.classList.remove('retirement-mode','scenario-mode');
+   if(retirement){badge.textContent='🔵 PROJECTION MODE';badge.classList.add('retirement-mode')}
+   else if(scenario){badge.textContent='🟡 WHAT-IF MODE';badge.classList.add('scenario-mode')}
+   else badge.textContent=window.__fireStatusText||'⏳ LOADING';
+   if(push){const url=new URL(location.href);url.searchParams.set('tab',retirement?'retirement':scenario?'scenario':'fire');history.replaceState(null,'',url)}
  }
  buttons.forEach(b=>b.addEventListener('click',()=>activate(b.dataset.tab)));
- const wanted=new URLSearchParams(location.search).get('tab');
- activate(wanted==='retirement'?'retirementPanel':'firePanel',false);
+ const wanted=new URLSearchParams(location.search).get('tab');activate(wanted==='retirement'?'retirementPanel':wanted==='scenario'?'scenarioPanel':'firePanel',false);
 }
 setupTabs();
 
-fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
+Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetch('data.json?ts='+Date.now()).then(r=>r.json())]).then(([d,fire])=>{
+ rSyncRetirementFromFire(d,fire);
  const a=d.assumptions,t=d.tax_rules,p=d.projection_inputs;
  const defaultSim=rSimulate(d,a.default_pension_access_age,a.central_return_rate);
  const pensionStart=p.projected_total_pensions_2030;
  const salaryOnly=rGeneralTax(a.barista_income_gross_2030,0,a.retirement_start_year,a,t);
  const baristaNet=a.barista_income_gross_2030-salaryOnly.tax-salaryOnly.ss;
 
- document.querySelector('#rUpdated').textContent='Plano atualizado em '+new Date(d.updated_at).toLocaleDateString('pt-BR')+' • fiscal até '+a.projection_end_year+' • Forever FIRE até '+((d.forever_fire&&d.forever_fire.end_year)||2100);
+ document.querySelector('#rUpdated').textContent='Modelo '+new Date(d.updated_at).toLocaleDateString('pt-BR')+' • saldos sincronizados do FIRE em '+new Date(d.synced_fire_at).toLocaleDateString('pt-BR')+' • Forever FIRE até '+((d.forever_fire&&d.forever_fire.end_year)||2100);
  document.querySelector('#rLifestyle2030').textContent=rEuro(a.lifestyle_annual_2030);
  document.querySelector('#rBaristaGross').textContent=rEuro(a.barista_income_gross_2030)+' bruto';
  document.querySelector('#rBaristaNet').textContent='≈ '+rEuro(baristaNet)+' líquido no proxy fiscal';
@@ -473,6 +560,18 @@ fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()).then(d=>{
  if(el)el.textContent='Erro ao carregar retirement-data.json';
 });
 
+
+
+function rProjectMonthly(current,monthly,annual,months){const mr=Math.pow(1+annual,1/12)-1;let v=current;for(let i=0;i<months;i++)v=v*(1+mr)+monthly;return v}
+function rSyncRetirementFromFire(d,fire){
+ const a=d.assumptions,p=d.projection_inputs,snap=new Date(fire.updated_at),months=Math.max(0,(a.retirement_start_year-snap.getUTCFullYear())*12-snap.getUTCMonth());
+ const accumulationRate=(fire.projection&&Number.isFinite(fire.projection.plan_rate_annual))?fire.projection.plan_rate_annual:a.central_return_rate;
+ const oldV=d.people.Victor.pension_balance_snapshot,oldR=d.people.Rosely.pension_balance_snapshot,oldTotal=oldV+oldR,vShare=oldTotal>0?oldV/oldTotal:.5,rShare=1-vShare;
+ const curV=fire.pension*vShare,curR=fire.pension*rShare,projV=rProjectMonthly(curV,d.people.Victor.monthly_pension_contribution,accumulationRate,months),projR=rProjectMonthly(curR,d.people.Rosely.monthly_pension_contribution,accumulationRate,months);
+ const projectedEtfs=rProjectMonthly(fire.etfs,(fire.contribution_plan&&fire.contribution_plan.etfs_monthly)||0,accumulationRate,months),basisRatio=p.projected_etfs_2030>0?p.projected_etf_cost_basis_2030/p.projected_etfs_2030:.65;
+ d.people.Victor.pension_balance_snapshot=curV;d.people.Rosely.pension_balance_snapshot=curR;d.people.Victor.projected_pension_2030=projV;d.people.Rosely.projected_pension_2030=projR;
+ p.pension_snapshot_date=String(fire.updated_at).slice(0,10);p.months_to_retirement=months;p.projected_etfs_2030=projectedEtfs;p.projected_etf_cost_basis_2030=projectedEtfs*basisRatio;p.projected_total_pensions_2030=projV+projR;p.projected_total_assets_2030=a.house_cash_2030+projectedEtfs+projV+projR;d.synced_fire_at=fire.updated_at;
+}
 
 function rGrossForNet(targetNet,year,a,t){
  let lo=0,hi=Math.max(targetNet*2,50000);
