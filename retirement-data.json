@@ -210,7 +210,7 @@
     "note": "Pension balances are excluded from accessible bridge capital. Eligibility ages are planning scenarios and must be revalidated against each scheme's rules."
   },
   "full_plan_monte_carlo": {
-    "simulations": 5000,
+    "simulations": 1500,
     "expected_nominal_return": 0.05,
     "annual_volatility": 0.12,
     "seed": 20261009,
