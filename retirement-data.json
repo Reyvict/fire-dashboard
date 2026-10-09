@@ -15,9 +15,18 @@
     "house_cash_2030": 250000,
     "cash_return_rate": 0,
     "central_return_rate": 0.04,
-    "scenario_rates": [0.02,0.04,0.05,0.06],
+    "scenario_rates": [
+      0.02,
+      0.04,
+      0.05,
+      0.06
+    ],
     "default_pension_access_age": 55,
-    "pension_access_age_scenarios": [50,55,60],
+    "pension_access_age_scenarios": [
+      50,
+      55,
+      60
+    ],
     "withdrawal_policy": "salary_net_then_house_cash_then_pension_when_eligible_then_etfs",
     "pension_withdrawal_allocation": "proportional_between_eligible_pots",
     "etf_tax_method": "proportional_cost_basis_proxy",
@@ -27,36 +36,131 @@
     "note": "Long-range planning model. Tax rules are a current-law proxy, not a forecast. House proceeds remain a future assumption until realized."
   },
   "people": {
-    "Victor": {"birth_date":"1987-07-20","pension_balance_snapshot":203117,"monthly_pension_contribution":300,"projected_pension_2030":243188},
-    "Rosely": {"birth_date":"1989-05-10","pension_balance_snapshot":234932,"monthly_pension_contribution":2000,"projected_pension_2030":349924}
+    "Victor": {
+      "birth_date": "1987-07-20",
+      "pension_balance_snapshot": 203117,
+      "monthly_pension_contribution": 300,
+      "projected_pension_2030": 243188
+    },
+    "Rosely": {
+      "birth_date": "1989-05-10",
+      "pension_balance_snapshot": 234932,
+      "monthly_pension_contribution": 2000,
+      "projected_pension_2030": 349924
+    }
   },
   "projection_inputs": {
-    "pension_snapshot_date":"2026-10-02",
-    "months_to_retirement":39,
-    "projected_etfs_2030":371800,
-    "projected_etf_cost_basis_2030":241200,
-    "expected_house_proceeds_2030":250000,
-    "projected_total_pensions_2030":593112,
-    "projected_total_assets_2030":1214912,
-    "etf_cost_basis_note":"Planning proxy from prior FIRE projection; replace with broker tax-lot history before real withdrawals."
+    "pension_snapshot_date": "2026-10-02",
+    "months_to_retirement": 39,
+    "projected_etfs_2030": 371800,
+    "projected_etf_cost_basis_2030": 241200,
+    "expected_house_proceeds_2030": 250000,
+    "projected_total_pensions_2030": 593112,
+    "projected_total_assets_2030": 1214912,
+    "etf_cost_basis_note": "Planning proxy from prior FIRE projection; replace with broker tax-lot history before real withdrawals."
   },
   "tax_rules": {
-    "jurisdiction":"Spain / Comunitat Valenciana",
-    "reference":"2025 IRPF scales + 2026 employee Social Security; used as a 2030 planning proxy",
-    "employee_social_security_rate":0.065,
-    "general_work_expense_deduction":2000,
-    "state_personal_minimum":5550,
-    "valencia_personal_minimum":6105,
-    "state_general_brackets":[
-      {"cap":12450,"rate":0.095},{"cap":20200,"rate":0.12},{"cap":35200,"rate":0.15},{"cap":60000,"rate":0.185},{"cap":300000,"rate":0.225},{"cap":999999999,"rate":0.245}
+    "jurisdiction": "Spain / Comunitat Valenciana",
+    "reference": "2025 IRPF scales + 2026 employee Social Security; used as a 2030 planning proxy",
+    "employee_social_security_rate": 0.065,
+    "general_work_expense_deduction": 2000,
+    "state_personal_minimum": 5550,
+    "valencia_personal_minimum": 6105,
+    "state_general_brackets": [
+      {
+        "cap": 12450,
+        "rate": 0.095
+      },
+      {
+        "cap": 20200,
+        "rate": 0.12
+      },
+      {
+        "cap": 35200,
+        "rate": 0.15
+      },
+      {
+        "cap": 60000,
+        "rate": 0.185
+      },
+      {
+        "cap": 300000,
+        "rate": 0.225
+      },
+      {
+        "cap": 999999999,
+        "rate": 0.245
+      }
     ],
-    "valencia_general_brackets":[
-      {"cap":12000,"rate":0.09},{"cap":22000,"rate":0.12},{"cap":32000,"rate":0.15},{"cap":42000,"rate":0.175},{"cap":52000,"rate":0.2},{"cap":62000,"rate":0.225},{"cap":72000,"rate":0.25},{"cap":100000,"rate":0.265},{"cap":150000,"rate":0.275},{"cap":200000,"rate":0.285},{"cap":999999999,"rate":0.295}
+    "valencia_general_brackets": [
+      {
+        "cap": 12000,
+        "rate": 0.09
+      },
+      {
+        "cap": 22000,
+        "rate": 0.12
+      },
+      {
+        "cap": 32000,
+        "rate": 0.15
+      },
+      {
+        "cap": 42000,
+        "rate": 0.175
+      },
+      {
+        "cap": 52000,
+        "rate": 0.2
+      },
+      {
+        "cap": 62000,
+        "rate": 0.225
+      },
+      {
+        "cap": 72000,
+        "rate": 0.25
+      },
+      {
+        "cap": 100000,
+        "rate": 0.265
+      },
+      {
+        "cap": 150000,
+        "rate": 0.275
+      },
+      {
+        "cap": 200000,
+        "rate": 0.285
+      },
+      {
+        "cap": 999999999,
+        "rate": 0.295
+      }
     ],
-    "savings_brackets":[
-      {"cap":6000,"rate":0.19},{"cap":50000,"rate":0.21},{"cap":200000,"rate":0.23},{"cap":300000,"rate":0.27},{"cap":999999999,"rate":0.3}
+    "savings_brackets": [
+      {
+        "cap": 6000,
+        "rate": 0.19
+      },
+      {
+        "cap": 50000,
+        "rate": 0.21
+      },
+      {
+        "cap": 200000,
+        "rate": 0.23
+      },
+      {
+        "cap": 300000,
+        "rate": 0.27
+      },
+      {
+        "cap": 999999999,
+        "rate": 0.3
+      }
     ],
-    "limitations":[
+    "limitations": [
       "Does not model deductions, credits, joint filing, child allowances or future law changes.",
       "ETF gains use a proportional cost-basis proxy rather than Spanish FIFO tax lots.",
       "Pension eligibility at age 50/55/60 is a scenario assumption and remains subject to each scheme's legal access rules.",
@@ -66,35 +170,73 @@
   "actuals": [],
   "spending_categories": [],
   "forever_fire": {
-    "end_year":2100,
-    "portfolio_withdrawal_real_2030":30000,
-    "outside_income_net_target_2030":30000,
-    "preserve_real_principal":true,
-    "deterministic_rates":[0.04,0.05,0.06],
-    "guardrails":{
-      "green_max_withdrawal_rate":0.025,
-      "watch_max_withdrawal_rate":0.03,
-      "protect_principal_rule":"Above 3%, freeze inflation increases and reduce discretionary portfolio withdrawals until the draw rate returns to 3% or below.",
-      "note":"Planning guardrails, not a guarantee."
+    "end_year": 2100,
+    "portfolio_withdrawal_real_2030": 30000,
+    "outside_income_net_target_2030": 30000,
+    "preserve_real_principal": true,
+    "deterministic_rates": [
+      0.04,
+      0.05,
+      0.06
+    ],
+    "guardrails": {
+      "green_max_withdrawal_rate": 0.025,
+      "watch_max_withdrawal_rate": 0.03,
+      "protect_principal_rule": "Above 3%, freeze inflation increases and reduce discretionary portfolio withdrawals until the draw rate returns to 3% or below.",
+      "note": "Planning guardrails, not a guarantee."
     },
-    "cash_strategy":{
-      "reserve_years":2,
-      "note":"Compare keeping all house proceeds in cash with holding two years of the €30k real portfolio draw in cash and treating the remainder as investable."
+    "cash_strategy": {
+      "reserve_years": 2,
+      "note": "Compare keeping all house proceeds in cash with holding two years of the €30k real portfolio draw in cash and treating the remainder as investable."
     },
-    "monte_carlo":{
-      "simulations":5000,
-      "expected_nominal_return":0.05,
-      "annual_volatility":0.12,
-      "seed":20261003,
-      "return_floor":-0.95,
-      "note":"Simplified pre-tax sequence-of-returns stress test; State Pension excluded."
+    "monte_carlo": {
+      "simulations": 5000,
+      "expected_nominal_return": 0.05,
+      "annual_volatility": 0.12,
+      "seed": 20261003,
+      "return_floor": -0.95,
+      "note": "Simplified pre-tax sequence-of-returns stress test; State Pension excluded."
     }
   },
   "bridge_to_pension": {
-    "default_access_age":55,
-    "scenarios":[50,55,60],
-    "safety_buffer_years":2,
-    "methodology":"Fund the inflation-adjusted lifestyle gap after net barista income from house cash first, then ETFs with the Spanish savings-tax proxy, until the first household pension becomes eligible.",
-    "note":"Pension balances are excluded from accessible bridge capital. Eligibility ages are planning scenarios and must be revalidated against each scheme's rules."
+    "default_access_age": 55,
+    "scenarios": [
+      50,
+      55,
+      60
+    ],
+    "safety_buffer_years": 2,
+    "methodology": "Fund the inflation-adjusted lifestyle gap after net barista income from house cash first, then ETFs with the Spanish savings-tax proxy, until the first household pension becomes eligible.",
+    "note": "Pension balances are excluded from accessible bridge capital. Eligibility ages are planning scenarios and must be revalidated against each scheme's rules."
+  },
+  "full_plan_monte_carlo": {
+    "simulations": 5000,
+    "expected_nominal_return": 0.05,
+    "annual_volatility": 0.12,
+    "seed": 20261009,
+    "end_year": 2100,
+    "access_age_scenarios": [
+      50,
+      55,
+      60
+    ],
+    "note": "Runs the retirement cash/ETF/pension/tax waterfall with randomized annual returns. Uses the planning tax model and pension-rule assumptions below."
+  },
+  "pension_rules": {
+    "jurisdiction": "Ireland",
+    "tax_residence_assumption": "Spain",
+    "private_occupational_pension": true,
+    "assumed_post_retirement_vehicle": "ARF",
+    "assume_arf_after_access": true,
+    "imputed_distribution_start_age": 60,
+    "imputed_rate_under_70": 0.04,
+    "imputed_rate_70_plus": 0.05,
+    "high_value_threshold": 2000000,
+    "high_value_rate": 0.06,
+    "occupational_pension_paye_exclusion_possible_if_dta": true,
+    "arf_or_vested_prsa_irish_withholding_at_source": true,
+    "excess_distribution_reinvestment": "Reinvest net amount into taxable ETF bucket in the planning model.",
+    "last_verified": "2026-10-09",
+    "source_note": "Current-law planning proxy based on Irish Revenue guidance. Revalidate before retirement/crystallisation."
   }
 }
