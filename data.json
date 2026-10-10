@@ -10,8 +10,14 @@
   "final_target": 1004000,
   "contribution_plan": {
     "etfs_monthly": 2000,
-    "pension_monthly": 2000,
-    "total_monthly": 4000
+    "pension_monthly": 2300,
+    "total_monthly": 4300,
+    "pension_breakdown": {
+      "Rosely": 2000,
+      "Victor": 300
+    },
+    "source_of_truth": true,
+    "note": "Single source of truth for forward projections. Official milestone path remains unchanged; €300/month Victor pension contribution is treated as additional contribution above the original €4k/month plan."
   },
   "barista": {
     "etf_target_2029": 372000,
@@ -385,21 +391,21 @@
   "projection": {
     "conservative_rate_annual": 0.04,
     "label": "Conservative 4%",
-    "monthly_contribution": 4000,
+    "monthly_contribution": 4300,
     "end_month": "2029-12",
     "current_pace_min_history_days": 90,
     "note": "Scenario, not forecast. Rates are configurable dashboard assumptions.",
     "plan_rate_annual": 0.075
   },
   "scenario_lab": {
-    "default_monthly_contribution": 4000,
+    "default_monthly_contribution": 4300,
     "default_annual_bonus": 0,
     "default_return_annual": 0.075,
     "default_target": 1004000,
     "bonus_month": 3,
     "note": "Interactive what-if inputs are browser-only and do not change the official plan."
   },
-  "dashboard_version": "2.1",
+  "dashboard_version": "2.2",
   "accumulation_monte_carlo": {
     "simulations": 5000,
     "expected_nominal_return": 0.075,

@@ -87,7 +87,7 @@
 </section>
 
 <div class="two">
-<section class="card"><h2>Composição</h2><div class="row"><b id="etfs"></b><span class="muted" id="etfShare"></span></div><div class="row" style="margin-top:8px"><b id="pension"></b><span class="muted" id="pensionShare"></span></div><div class="comp" style="margin:15px 0 9px"><div class="e" id="eBar"></div><div class="p" id="pBar"></div></div><div class="small">Azul = ETFs acessíveis • Verde = pensões</div></section>
+<section class="card"><h2>Composição</h2><div class="row"><b id="etfs"></b><span class="muted" id="etfShare"></span></div><div class="row" style="margin-top:8px"><b id="pension"></b><span class="muted" id="pensionShare"></span></div><div class="comp" style="margin:15px 0 9px"><div class="e" id="eBar"></div><div class="p" id="pBar"></div></div><div class="small">Azul = ETFs acessíveis • Verde = pensões</div><div class="small" id="contributionSummary" style="margin-top:8px"></div></section>
 <section class="card"><h2>🏖️ Barista FIRE readiness</h2><div class="row"><span>ETFs atuais</span><b id="baristaCurrent"></b></div><div class="row" style="margin-top:8px"><span>Meta ETFs 2029</span><b id="baristaTarget"></b></div><div class="bar" style="margin:12px 0 7px"><i id="baristaBar"></i></div><div class="small" id="baristaPct"></div><div class="small" style="margin-top:10px">Premissa futura: ~€250k líquidos da venda da casa, levando o capital acessível planejado para ~€622k em 2030. Não incluído no patrimônio atual.</div></section>
 </div>
 
@@ -178,6 +178,27 @@
       <div class="card"><div class="label">ARF withholding</div><div class="value" id="rArfWithholding"></div><div class="small">Irish tax-at-source flag in model notes</div></div>
     </div>
     <div class="callout small" id="rArfImpact"></div>
+  </section>
+
+
+  <section class="card" id="rStatePensionSection">
+    <div class="chart-head">
+      <div><h2>🇮🇪 State Pension scenarios <span class="v2-tag">V2.2</span></h2><div class="small">Baseline continua sem State Pension. Os cenários abaixo mostram 0% / 50% / 100% da taxa máxima atual, sem assumir entitlement.</div></div>
+      <span class="pill" id="rStatePensionVerified"></span>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div class="card"><div class="label">Current pension age</div><div class="value" id="rStatePensionAge"></div><div class="small">Current-law assumption</div></div>
+      <div class="card"><div class="label">2026 maximum rate</div><div class="value" id="rStatePensionWeekly"></div><div class="small">Per person • weekly</div></div>
+      <div class="card"><div class="label">Household max • current €</div><div class="value" id="rStatePensionHousehold"></div><div class="small">2 × maximum personal rate</div></div>
+      <div class="card"><div class="label">Baseline treatment</div><div class="value" id="rStatePensionBaseline"></div><div class="small">Scenario only</div></div>
+    </div>
+    <div style="overflow-x:auto;margin-top:10px">
+      <table>
+        <thead><tr><th>Entitlement</th><th>Victor starts</th><th>Rosely starts</th><th>First shortfall @ 4%</th><th>Real wealth 2100</th><th>Total State Pension gross</th></tr></thead>
+        <tbody id="rStatePensionTable"></tbody>
+      </table>
+    </div>
+    <div class="callout small" id="rStatePensionInsight"></div>
   </section>
 
   <section class="card" id="rBridgeSection">
@@ -324,6 +345,27 @@
         <tbody id="rSensitivityTable"></tbody>
       </table>
     </div>
+  </section>
+
+
+  <section class="card" id="rActualPlanSection">
+    <div class="chart-head">
+      <div><h2>📊 Actual vs Plan <span class="v2-tag">V2.2</span></h2><div class="small">A partir de 2030, compara gasto real e patrimônio real com o plano-base.</div></div>
+      <span class="pill" id="rActualPlanStatus">Waiting</span>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div class="card"><div class="label">Years tracked</div><div class="value" id="rActualYears"></div><div class="small">Anos com actuals</div></div>
+      <div class="card"><div class="label">Cumulative spending variance</div><div class="value" id="rActualSpendVar"></div><div class="small">Negativo = abaixo do orçamento</div></div>
+      <div class="card"><div class="label">Latest portfolio variance</div><div class="value" id="rActualPotVar"></div><div class="small">Positivo = acima do plano</div></div>
+      <div class="card"><div class="label">Latest tracked year</div><div class="value" id="rActualLatestYear"></div><div class="small" id="rActualLatestCaption"></div></div>
+    </div>
+    <div style="overflow-x:auto;margin-top:10px">
+      <table>
+        <thead><tr><th>Year</th><th>Plan spend</th><th>Actual spend</th><th>Variance</th><th>Plan end pot</th><th>Actual end pot</th><th>Variance</th></tr></thead>
+        <tbody id="rActualPlanTable"></tbody>
+      </table>
+    </div>
+    <div class="callout small" id="rActualPlanInsight"></div>
   </section>
 
   <section class="card">

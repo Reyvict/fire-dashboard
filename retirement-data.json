@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-03T13:02:00+01:00",
+  "updated_at": "2026-10-10T17:44:00+01:00",
   "phase": "projection",
   "assumptions": {
     "retirement_start_year": 2030,
@@ -164,7 +164,7 @@
       "Does not model deductions, credits, joint filing, child allowances or future law changes.",
       "ETF gains use a proportional cost-basis proxy rather than Spanish FIFO tax lots.",
       "Pension eligibility at age 50/55/60 is a scenario assumption and remains subject to each scheme's legal access rules.",
-      "State pensions are excluded."
+      "Baseline excludes State Pension; separate 0% / 50% / 100% current-law scenarios are modeled."
     ]
   },
   "actuals": [],
@@ -238,5 +238,44 @@
     "excess_distribution_reinvestment": "Reinvest net amount into taxable ETF bucket in the planning model.",
     "last_verified": "2026-10-09",
     "source_note": "Current-law planning proxy based on Irish Revenue guidance. Revalidate before retirement/crystallisation."
+  },
+  "contribution_source": {
+    "source": "data.json.contribution_plan",
+    "etfs_monthly": 2000,
+    "pension_monthly": 2300,
+    "total_monthly": 4300,
+    "note": "Retirement projection reads the pension split from the FIRE contribution plan so accumulation and retirement use one source of truth."
+  },
+  "state_pension": {
+    "baseline_included": false,
+    "pension_age": 66,
+    "max_deferral_age": 70,
+    "max_weekly_rate_2026": 299.3,
+    "max_annual_rate_2026": 15563.6,
+    "rate_reference_year": 2026,
+    "max_contributions_for_full_rate": 2080,
+    "scenario_fractions": [
+      0,
+      0.5,
+      1
+    ],
+    "index_with_inflation": true,
+    "first_year_prorated": true,
+    "tax_treatment": "Included as pension income in the existing Spain general-income tax proxy for scenario analysis.",
+    "last_verified": "2026-10-10",
+    "source": "Ireland Department of Social Protection / Budget 2026",
+    "note": "Baseline remains unchanged with State Pension excluded. Scenario fractions are not entitlement estimates; actual entitlement depends on each person's PRSI/social-insurance record and future law."
+  },
+  "actual_tracking": {
+    "enabled": true,
+    "start_year": 2030,
+    "fields": [
+      "spend",
+      "end_pot",
+      "income",
+      "notes"
+    ],
+    "status": "ready",
+    "note": "No retirement actuals exist before retirement starts. When annual actuals are added, the dashboard compares actual spend and end-of-year portfolio with the deterministic default plan."
   }
 }
