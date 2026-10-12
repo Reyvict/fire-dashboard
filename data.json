@@ -405,7 +405,7 @@
     "bonus_month": 3,
     "note": "Interactive what-if inputs are browser-only and do not change the official plan."
   },
-  "dashboard_version": "2.2",
+  "dashboard_version": "2.3",
   "accumulation_monte_carlo": {
     "simulations": 5000,
     "expected_nominal_return": 0.075,

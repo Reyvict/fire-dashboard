@@ -142,8 +142,43 @@
   </div>
 
 
+  <section class="card" id="rLifestyleLab">
+    <div class="chart-head">
+      <div><h2>🏠 Lifestyle Spending Lab <span class="v2-tag">V2.3</span></h2><div class="small">Compare gastos de aposentadoria sem alterar o baseline oficial de €60k/ano. O cenário selecionado reutiliza o mesmo bridge, pensões, impostos e Monte Carlo do plano.</div></div>
+      <span class="pill" id="rLifeStatus">WHAT-IF</span>
+    </div>
+    <div class="scenario-controls" style="margin-top:12px">
+      <div class="field">
+        <label>Presets</label>
+        <div class="row" style="justify-content:flex-start;gap:8px;flex-wrap:wrap">
+          <button class="detail-toggle" id="rLife45" type="button">€45k</button>
+          <button class="detail-toggle" id="rLife60" type="button">€60k baseline</button>
+          <button class="detail-toggle" id="rLifeReset" type="button">Reset</button>
+        </div>
+      </div>
+      <div class="field"><label for="rLifeCustom">Gasto anual em 2030</label><input id="rLifeCustom" type="number" min="15000" max="90000" step="1000" inputmode="numeric"></div>
+      <div class="field"><label>Equivalente mensal</label><div class="value" id="rLifeMonthly"></div><div class="small">Euros de 2030</div></div>
+      <div class="field"><label>Baseline oficial</label><div class="value" id="rLifeBaseline"></div><div class="small">Permanece inalterado</div></div>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div class="card"><div class="label">Money lasts</div><div class="value" id="rLifeDuration"></div><div class="small">Cenário determinístico central até 2100</div></div>
+      <div class="card"><div class="label">Bridge funding need</div><div class="value" id="rLifeBridgeNeed"></div><div class="small">Até a 1ª pensão elegível</div></div>
+      <div class="card"><div class="label">Accessible at pension</div><div class="value green" id="rLifeBridgeRemain"></div><div class="small">Cash + ETFs restantes</div></div>
+      <div class="card"><div class="label">Full-plan success</div><div class="mc-number" id="rLifeMcSuccess"></div><div class="small">Monte Carlo até 2100</div></div>
+      <div class="card"><div class="label">Assets at 60 • Victor</div><div class="value" id="rLifeAssets60"></div><div class="small">Cenário determinístico central</div></div>
+      <div class="card"><div class="label">Sustainable lifestyle</div><div class="value" id="rLifeSustainable"></div><div class="small" id="rLifeSustainableCaption">Maior gasto aproximado com ≥80% de sucesso</div></div>
+    </div>
+    <div style="overflow-x:auto;margin-top:10px">
+      <table>
+        <thead><tr><th>Métrica</th><th>€60k baseline</th><th>Cenário</th><th>Impacto</th></tr></thead>
+        <tbody id="rLifeComparisonTable"></tbody>
+      </table>
+    </div>
+    <div class="callout small" id="rLifeInsight"></div>
+  </section>
+
   <section class="card exec-summary" id="rExecSummary">
-    <div class="chart-head"><div><h2>📱 Retirement Executive Summary <span class="v2-tag">V2.1</span></h2><div class="small">Os indicadores essenciais para saber se o plano está pronto sem percorrer toda a análise.</div></div><span class="pill" id="rExecStatus">Calculating…</span></div>
+    <div class="chart-head"><div><h2>📱 Retirement Executive Summary <span class="v2-tag">V2.3</span></h2><div class="small">Os indicadores essenciais para saber se o plano está pronto sem percorrer toda a análise.</div></div><span class="pill" id="rExecStatus">Calculating…</span></div>
     <div class="grid" style="margin-top:12px">
       <div class="card"><div class="label">Projected FIRE</div><div class="value" id="rExecFireDate"></div><div class="small">Acumulação • cenário do plano</div></div>
       <div class="card"><div class="label">Bridge to pension</div><div class="value" id="rExecBridge"></div><div class="small" id="rExecBridgeCaption"></div></div>

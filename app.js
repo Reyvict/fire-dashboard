@@ -279,7 +279,7 @@ Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetc
  const salaryOnly=rGeneralTax(a.barista_income_gross_2030,0,a.retirement_start_year,a,t);
  const baristaNet=a.barista_income_gross_2030-salaryOnly.tax-salaryOnly.ss;
 
- document.querySelector('#rUpdated').textContent='Modelo '+new Date(d.updated_at).toLocaleDateString('pt-BR')+' • saldos sincronizados do FIRE em '+new Date(d.synced_fire_at).toLocaleDateString('pt-BR')+' • Forever FIRE até '+((d.forever_fire&&d.forever_fire.end_year)||2100);
+ document.querySelector('#rUpdated').textContent='V'+(d.dashboard_version||'2.3')+' • Modelo '+new Date(d.updated_at).toLocaleDateString('pt-BR')+' • saldos sincronizados do FIRE em '+new Date(d.synced_fire_at).toLocaleDateString('pt-BR')+' • Forever FIRE até '+((d.forever_fire&&d.forever_fire.end_year)||2100);
  document.querySelector('#rLifestyle2030').textContent=rEuro(a.lifestyle_annual_2030);
  document.querySelector('#rBaristaGross').textContent=rEuro(a.barista_income_gross_2030)+' bruto';
  document.querySelector('#rBaristaNet').textContent='≈ '+rEuro(baristaNet)+' líquido no proxy fiscal';
@@ -348,6 +348,7 @@ Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetc
  document.querySelector('#rFullMcStatus').style.color=fStatus==='green'?'var(--green)':fStatus==='amber'?'var(--amber)':'var(--red)';
  document.querySelector('#rFullMcInsight').innerHTML='<strong>Leitura:</strong> este é o Monte Carlo mais completo do Hub. Diferente do Forever FIRE simplificado, ele respeita os buckets, acesso às pensões, proxy fiscal espanhol e o piso ARF configurado.';
  rRenderExecutiveSummary(d,fire,bridgeDefault,fullDefault);
+ rSetupLifestyleLab(d,fullDefault);
  rSetupRetirementDetails();
  const rTests=rRunSelfTests(d);if(rTests.passed<rTests.total)console.warn('Retirement self-tests',rTests);
  const foreverWR=ff.portfolio_withdrawal_real_2030/total2030,requiredNominal=a.inflation_rate+foreverWR;
@@ -699,16 +700,16 @@ function rSimulateEngine(d,accessAge,returnProvider,endYear,statePensionFraction
 function rSimulate(d,accessAge,returnRate){
  const x=rSimulateEngine(d,accessAge,()=>returnRate,d.assumptions.projection_end_year);x.returnRate=returnRate;return x;
 }
-function rFullPlanMonteCarlo(d,accessAge){
- const m=d.full_plan_monte_carlo||{},sims=m.simulations||1500,rand=rMulberry32((m.seed||20261009)+accessAge*101),ends=[],failYears=[];let success=0;
+function rFullPlanMonteCarlo(d,accessAge,opts={}){
+ const m=d.full_plan_monte_carlo||{},sims=Number.isFinite(opts.simulations)?opts.simulations:(m.simulations||1500),seedOffset=Number.isFinite(opts.seedOffset)?opts.seedOffset:0,endYear=Number.isFinite(opts.endYear)?opts.endYear:(m.end_year||2100),rand=rMulberry32((m.seed||20261009)+accessAge*101+seedOffset),ends=[],failYears=[];let success=0;
  for(let s=0;s<sims;s++){
-   const sim=rSimulateEngine(d,accessAge,()=>Math.max(-.95,(m.expected_nominal_return||.05)+(m.annual_volatility||.12)*rNormal(rand)),m.end_year||2100);
+   const sim=rSimulateEngine(d,accessAge,()=>Math.max(-.95,(m.expected_nominal_return||.05)+(m.annual_volatility||.12)*rNormal(rand)),endYear);
    const ok=!sim.firstShortfallYear;if(ok)success++;else failYears.push(sim.firstShortfallYear);
    const last=sim.rows[sim.rows.length-1],years=Math.max(0,(last?last.year:d.assumptions.retirement_start_year)-d.assumptions.retirement_start_year),real=ok&&last?last.netWorth/Math.pow(1+d.assumptions.inflation_rate,years):0;
    ends.push(Math.max(0,real));
  }
  ends.sort((a,b)=>a-b);failYears.sort((a,b)=>a-b);
- return {accessAge,successRate:success/sims,p10RealEnd:rPct(ends,.1),medianRealEnd:rPct(ends,.5),p90RealEnd:rPct(ends,.9),medianFailureYear:failYears.length?Math.round(rPct(failYears,.5)):null,simulations:sims};
+ return {accessAge,successRate:success/sims,p10RealEnd:rPct(ends,.1),medianRealEnd:rPct(ends,.5),p90RealEnd:rPct(ends,.9),medianFailureYear:failYears.length?Math.round(rPct(failYears,.5)):null,simulations:sims,endYear};
 }
 function rRenderFullMcTable(d){
  const tb=document.querySelector('#rFullMcTable');tb.innerHTML='';const out={};
@@ -730,6 +731,70 @@ function rRenderExecutiveSummary(d,fire,bridge,fullMc){
  document.querySelector('#rExecStatus').textContent=status==='green'?'🟢 PLAN ROBUST':status==='amber'?'🟡 PLAN WATCH':'🔴 PLAN FRAGILE';
  document.querySelector('#rExecStatus').style.color=status==='green'?'var(--green)':status==='amber'?'var(--amber)':'var(--red)';
 }
+function rLifestyleCopy(d,annual){
+ const x=JSON.parse(JSON.stringify(d));x.assumptions.lifestyle_annual_2030=annual;return x;
+}
+function rAssetNumberAt(sim,year){
+ const row=sim.rows.find(r=>r.year===year);return row?row.netWorth:null;
+}
+function rLifestyleSustainable(d){
+ const cfg=d.lifestyle_spending_lab||{},target=cfg.sustainable_success_target||.8,step=cfg.custom_step_annual_2030||1000,age=d.assumptions.default_pension_access_age,sims=cfg.sustainable_search_simulations||800,iters=cfg.sustainable_search_iterations||8;
+ let lo=cfg.custom_min_annual_2030||15000,hi=cfg.custom_max_annual_2030||90000,best=lo,bestMc=null;
+ for(let i=0;i<iters&&lo<=hi;i++){
+   let mid=Math.round(((lo+hi)/2)/step)*step;mid=Math.max(lo,Math.min(hi,mid));
+   const md=rLifestyleCopy(d,mid),mc=rFullPlanMonteCarlo(md,age,{simulations:sims});
+   if(mc.successRate>=target){best=mid;bestMc=mc;lo=mid+step}else hi=mid-step;
+ }
+ if(!bestMc)bestMc=rFullPlanMonteCarlo(rLifestyleCopy(d,best),age,{simulations:sims});
+ return {annual:best,successRate:bestMc.successRate,target,simulations:sims};
+}
+function rSetupLifestyleLab(d,baselineMc){
+ const root=document.querySelector('#rLifestyleLab'),cfg=d.lifestyle_spending_lab||{};if(!root||cfg.enabled===false)return;
+ const baselineAnnual=cfg.baseline_annual_2030||d.assumptions.lifestyle_annual_2030,defaultAnnual=cfg.default_scenario_annual_2030||baselineAnnual,min=cfg.custom_min_annual_2030||15000,max=cfg.custom_max_annual_2030||90000,step=cfg.custom_step_annual_2030||1000,accessAge=d.assumptions.default_pension_access_age,endYear=(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.end_year)||2100;
+ const baselineD=rLifestyleCopy(d,baselineAnnual),baselineBridge=rBridgeScenario(baselineD,accessAge),baselineDet=rSimulateEngine(baselineD,accessAge,()=>baselineD.assumptions.central_return_rate,endYear),baseMc=baselineMc||rFullPlanMonteCarlo(baselineD,accessAge);
+ const sustainable=rLifestyleSustainable(d),custom=document.querySelector('#rLifeCustom'),b45=document.querySelector('#rLife45'),b60=document.querySelector('#rLife60'),reset=document.querySelector('#rLifeReset');
+ custom.min=min;custom.max=max;custom.step=step;
+ document.querySelector('#rLifeBaseline').textContent=rEuro(baselineAnnual)+'/ano';
+ document.querySelector('#rLifeSustainable').textContent='≈ '+rEuro(sustainable.annual)+'/ano';
+ document.querySelector('#rLifeSustainableCaption').textContent='≈ '+rEuro(sustainable.annual/12)+'/mês • '+Math.round(sustainable.successRate*100)+'% em '+sustainable.simulations.toLocaleString('en-IE')+' sims';
+ const deltaMoney=v=>(v>=0?'+':'-')+rEuro(Math.abs(v)),deltaPct=v=>(v>=0?'+':'')+v.toFixed(0)+' pp';
+ const setButton=(el,on)=>{if(!el)return;el.setAttribute('aria-pressed',on?'true':'false');el.style.borderColor=on?'var(--green)':'';el.style.color=on?'var(--green)':''};
+ const duration=s=>s.firstShortfallYear?String(s.firstShortfallYear):'Never / >'+endYear;
+ const render=annual=>{
+   annual=Math.max(min,Math.min(max,Math.round(Number(annual||defaultAnnual)/step)*step));custom.value=annual;
+   try{localStorage.setItem('fire_retirement_lifestyle_annual_2030',String(annual))}catch(e){}
+   const sd=rLifestyleCopy(d,annual),bridge=rBridgeScenario(sd,accessAge),det=rSimulateEngine(sd,accessAge,()=>sd.assumptions.central_return_rate,endYear),mc=annual===baselineAnnual?baseMc:rFullPlanMonteCarlo(sd,accessAge);
+   const v60=Number(String(d.people.Victor.birth_date).slice(0,4))+60,base60=rAssetNumberAt(baselineDet,v60)||0,sc60=rAssetNumberAt(det,v60)||0,pp=(mc.successRate-baseMc.successRate)*100;
+   document.querySelector('#rLifeStatus').textContent=annual===baselineAnnual?'BASELINE • '+rEuro(annual):'WHAT-IF • '+rEuro(annual);
+   document.querySelector('#rLifeStatus').style.color=annual===baselineAnnual?'var(--muted)':'var(--green)';
+   document.querySelector('#rLifeMonthly').textContent=rEuro(annual/12)+'/mês';
+   document.querySelector('#rLifeDuration').textContent=duration(det);
+   document.querySelector('#rLifeBridgeNeed').textContent=fmt(bridge.lifestyleGap);
+   document.querySelector('#rLifeBridgeRemain').textContent=fmt(bridge.remainingAccessible);
+   document.querySelector('#rLifeMcSuccess').textContent=Math.round(mc.successRate*100)+'%';
+   document.querySelector('#rLifeMcSuccess').style.color=mc.successRate>=.8?'var(--green)':mc.successRate>=.6?'var(--amber)':'var(--red)';
+   document.querySelector('#rLifeAssets60').textContent=fmt(sc60);
+   setButton(b45,annual===45000);setButton(b60,annual===baselineAnnual);
+   const tb=document.querySelector('#rLifeComparisonTable');tb.innerHTML='';
+   const rows=[
+     ['Gasto mensal',rEuro(baselineAnnual/12),rEuro(annual/12),deltaMoney((annual-baselineAnnual)/12)],
+     ['Bridge funding need',fmt(baselineBridge.lifestyleGap),fmt(bridge.lifestyleGap),deltaMoney(bridge.lifestyleGap-baselineBridge.lifestyleGap)],
+     ['Capital na 1ª pensão',fmt(baselineBridge.remainingAccessible),fmt(bridge.remainingAccessible),deltaMoney(bridge.remainingAccessible-baselineBridge.remainingAccessible)],
+     ['Patrimônio aos 60',fmt(base60),fmt(sc60),deltaMoney(sc60-base60)],
+     ['Primeiro shortfall',duration(baselineDet),duration(det),(!baselineDet.firstShortfallYear&&!det.firstShortfallYear)?'—':!det.firstShortfallYear?'sem shortfall':!baselineDet.firstShortfallYear?'pior':((det.firstShortfallYear-baselineDet.firstShortfallYear)>=0?'+':'')+(det.firstShortfallYear-baselineDet.firstShortfallYear)+' anos'],
+     ['Monte Carlo até '+endYear,Math.round(baseMc.successRate*100)+'%',Math.round(mc.successRate*100)+'%',deltaPct(pp)],
+     ['Impostos totais • modelo',fmt(baselineDet.totalTax),fmt(det.totalTax),deltaMoney(det.totalTax-baselineDet.totalTax)]
+   ];
+   rows.forEach(r=>{const tr=document.createElement('tr');tr.innerHTML='<td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+r[3]+'</td>';tb.appendChild(tr)});
+   const spendDiff=baselineAnnual-annual,bridgeSaved=baselineBridge.lifestyleGap-bridge.lifestyleGap,remainGain=bridge.remainingAccessible-baselineBridge.remainingAccessible;
+   if(annual<baselineAnnual)document.querySelector('#rLifeInsight').innerHTML='<strong>Impacto:</strong> reduzir o lifestyle em '+rEuro(spendDiff)+'/ano reduz a necessidade estimada do bridge em <strong>'+fmt(Math.max(0,bridgeSaved))+'</strong>, deixa cerca de <strong>'+fmt(Math.max(0,remainGain))+'</strong> a mais acessível na primeira pensão e muda o sucesso do plano de <strong>'+Math.round(baseMc.successRate*100)+'%</strong> para <strong>'+Math.round(mc.successRate*100)+'%</strong> ('+deltaPct(pp)+'). O baseline oficial continua '+rEuro(baselineAnnual)+'/ano.';
+   else if(annual>baselineAnnual)document.querySelector('#rLifeInsight').innerHTML='<strong>Impacto:</strong> este cenário adiciona '+rEuro(annual-baselineAnnual)+'/ano ao lifestyle. O sucesso do plano muda de <strong>'+Math.round(baseMc.successRate*100)+'%</strong> para <strong>'+Math.round(mc.successRate*100)+'%</strong> ('+deltaPct(pp)+'). O baseline oficial não foi alterado.';
+   else document.querySelector('#rLifeInsight').innerHTML='<strong>Baseline:</strong> este é o plano oficial de '+rEuro(baselineAnnual)+'/ano em euros de 2030. Use €45k ou Custom para testar alternativas sem gravar mudanças no plano.';
+ };
+ let initial=defaultAnnual;try{const stored=Number(localStorage.getItem('fire_retirement_lifestyle_annual_2030'));if(Number.isFinite(stored)&&stored>=min&&stored<=max)initial=stored}catch(e){}
+ b45.addEventListener('click',()=>render(45000));b60.addEventListener('click',()=>render(baselineAnnual));reset.addEventListener('click',()=>render(defaultAnnual));custom.addEventListener('change',()=>render(custom.value));
+ render(initial);
+}
 function rSetupRetirementDetails(){
  const panel=document.querySelector('#retirementPanel'),summary=document.querySelector('#rExecSummary'),btn=document.querySelector('#rToggleDetails');if(!panel||!summary||!btn||btn.dataset.ready)return;
  const children=[...panel.children],idx=children.indexOf(summary),details=children.slice(idx+1);details.forEach(el=>el.classList.add('retirement-detail'));
@@ -738,7 +803,7 @@ function rSetupRetirementDetails(){
  apply();btn.addEventListener('click',()=>{collapsed=!collapsed;apply()});btn.dataset.ready='1';
 }
 function rRunSelfTests(d){
- let passed=0,total=8;
+ let passed=0,total=10;
  try{if(rArfRate(d,d.people.Victor.birth_date,2030,500000,55)===0)passed++}catch(e){}
  try{let y=2030;while(rAgeAtStartOfYear(d.people.Victor.birth_date,y)<60)y++;if(Math.abs(rArfRate(d,d.people.Victor.birth_date,y,500000,55)-((d.pension_rules&&d.pension_rules.imputed_rate_under_70)||.04))<1e-9)passed++}catch(e){}
  try{let y=2030;while(rAgeAtStartOfYear(d.people.Victor.birth_date,y)<70)y++;if(Math.abs(rArfRate(d,d.people.Victor.birth_date,y,500000,55)-((d.pension_rules&&d.pension_rules.imputed_rate_70_plus)||.05))<1e-9)passed++}catch(e){}
@@ -747,6 +812,8 @@ function rRunSelfTests(d){
  try{if(rStatePensionGross(d,'Victor',2040,1)===0)passed++}catch(e){}
  try{const y=rStatePensionStartYear(d,'Victor');if(rStatePensionGross(d,'Victor',y,1)>0)passed++}catch(e){}
  try{const cp=window.__fireData&&window.__fireData.contribution_plan;if(!cp||Math.abs((cp.etfs_monthly+cp.pension_monthly)-cp.total_monthly)<1e-9)passed++}catch(e){}
+ try{const base=d.assumptions.lifestyle_annual_2030,x=rLifestyleCopy(d,45000);if(d.assumptions.lifestyle_annual_2030===base&&x.assumptions.lifestyle_annual_2030===45000)passed++}catch(e){}
+ try{const cfg=d.lifestyle_spending_lab||{},hi=rBridgeScenario(rLifestyleCopy(d,cfg.baseline_annual_2030||60000),d.assumptions.default_pension_access_age),lo=rBridgeScenario(rLifestyleCopy(d,45000),d.assumptions.default_pension_access_age);if(lo.lifestyleGap<=hi.lifestyleGap)passed++}catch(e){}
  return {passed,total};
 }function rAssetAt(sim,year){
  const row=sim.rows.find(r=>r.year===year);

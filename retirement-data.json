@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-10T17:44:00+01:00",
+  "updated_at": "2026-10-12T10:44:59Z",
   "phase": "projection",
   "assumptions": {
     "retirement_start_year": 2030,
@@ -277,5 +277,22 @@
     ],
     "status": "ready",
     "note": "No retirement actuals exist before retirement starts. When annual actuals are added, the dashboard compares actual spend and end-of-year portfolio with the deterministic default plan."
+  },
+  "dashboard_version": "2.3",
+  "lifestyle_spending_lab": {
+    "enabled": true,
+    "baseline_annual_2030": 60000,
+    "default_scenario_annual_2030": 45000,
+    "presets": [
+      45000,
+      60000
+    ],
+    "custom_min_annual_2030": 15000,
+    "custom_max_annual_2030": 90000,
+    "custom_step_annual_2030": 1000,
+    "sustainable_success_target": 0.8,
+    "sustainable_search_simulations": 800,
+    "sustainable_search_iterations": 8,
+    "note": "What-if only. The official retirement baseline remains €60k/year in 2030 euros; scenario selections are browser-side and do not overwrite the plan."
   }
 }
