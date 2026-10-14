@@ -1,12 +1,12 @@
 {
-  "updated_at": "2026-10-12T15:15:00+01:00",
+  "updated_at": "2026-10-14T14:48:58+01:00",
   "currency": "EUR",
   "status": "on_track",
-  "official_financial_assets": 691747.06893588,
-  "core_fire": 686489.06893588,
-  "etfs": 236470.06893588,
-  "pension": 450019,
-  "target_today": 658096.7741935484,
+  "official_financial_assets": 693448.2640142,
+  "core_fire": 688190.2640142,
+  "etfs": 236987.2640142,
+  "pension": 451203,
+  "target_today": 658612.9032258064,
   "final_target": 1004000,
   "contribution_plan": {
     "etfs_monthly": 2000,
@@ -129,6 +129,14 @@
       "target": 658096.7741935484,
       "etfs": 236470.06893588,
       "pension": 450019
+    },
+    {
+      "date": "2026-10-14T14:48:58+01:00",
+      "label": "14 Oct",
+      "actual": 688190.2640142,
+      "target": 658612.9032258064,
+      "etfs": 236987.2640142,
+      "pension": 451203
     }
   ],
   "milestones": [
@@ -395,7 +403,10 @@
       "core": 1004000
     }
   ],
-  "sync_warnings": [],
+  "sync_warnings": [
+    "Trading212: data stale since 2026-10-06.",
+    "Degiro: data stale since 2026-10-06."
+  ],
   "projection": {
     "conservative_rate_annual": 0.04,
     "label": "Conservative 4%",
