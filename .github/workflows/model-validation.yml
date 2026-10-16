@@ -11,4 +11,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: node tests/retirement-engine.test.js
+      - name: Syntax check
+        run: |
+          node --check retirement-engine.js
+          node --check app.js
+      - name: Financial model tests
+        run: node tests/retirement-engine.test.js
