@@ -342,19 +342,19 @@ Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetc
  const fullMcByAge=rRenderFullMcTable(d),fullDefault=fullMcByAge[a.default_pension_access_age];
  document.querySelector('#rFullMcDefault').textContent=(fullDefault.successRate*100).toFixed(0)+'%';
  document.querySelector('#rFullMcP10').textContent=fmt(fullDefault.p10RealEnd);document.querySelector('#rFullMcMedian').textContent=fmt(fullDefault.medianRealEnd);document.querySelector('#rFullMcP90').textContent=fmt(fullDefault.p90RealEnd);
- document.querySelector('#rFullMcCaption').textContent=d.full_plan_monte_carlo.simulations.toLocaleString('en-IE')+' simulations por cenário • cash → pension/ARF → ETF • tax-aware • até '+d.full_plan_monte_carlo.end_year;
+ document.querySelector('#rFullMcCaption').textContent=d.full_plan_monte_carlo.simulations.toLocaleString('en-IE')+' simulations por cenário • shared decision engine • common market paths • até '+d.full_plan_monte_carlo.end_year;
  const fStatus=fullDefault.successRate>=.8?'green':fullDefault.successRate>=.6?'amber':'red';
  document.querySelector('#rFullMcStatus').textContent=fStatus==='green'?'🟢 ROBUST':fStatus==='amber'?'🟡 WATCH':'🔴 FRAGILE';
  document.querySelector('#rFullMcStatus').style.color=fStatus==='green'?'var(--green)':fStatus==='amber'?'var(--amber)':'var(--red)';
  document.querySelector('#rFullMcInsight').innerHTML='<strong>Leitura:</strong> este é o Monte Carlo mais completo do Hub. Diferente do Forever FIRE simplificado, ele respeita os buckets, acesso às pensões, proxy fiscal espanhol e o piso ARF configurado.';
  rRenderExecutiveSummary(d,fire,bridgeDefault,fullDefault);
- rSetupLifestyleLab(d,fullDefault);
+ rSetupLifestyleLab(d,fullDefault);rRenderDecisionAudit(d,fire,defaultSim,fullDefault);
  rSetupRetirementDetails();
- const rTests=rRunSelfTests(d);if(rTests.passed<rTests.total)console.warn('Retirement self-tests',rTests);
+ const rTests=rRunSelfTests(d,fire);if(rTests.passed<rTests.total)console.warn('Retirement self-tests',rTests);
  const foreverWR=ff.portfolio_withdrawal_real_2030/total2030,requiredNominal=a.inflation_rate+foreverWR;
  const grossNeeded=rGrossForNet(ff.outside_income_net_target_2030,a.retirement_start_year,a,t);
  const incomeGap=Math.max(0,ff.outside_income_net_target_2030-baristaNet);
- const reserve=Math.min(a.house_cash_2030,ff.portfolio_withdrawal_real_2030*ff.cash_strategy.reserve_years);
+ const bucketCfg=window.FireRetirementEngine.bucketConfig(d),reserve=Math.min(a.house_cash_2030,(bucketCfg.pot1||0)+(bucketCfg.pot2||0));
  const mcReserve=rMonteCarlo(d,'reserve'),mcAll=rMonteCarlo(d,'all_cash'),guard=rGuardrailStatus(foreverWR,ff.guardrails);
  document.querySelector('#rForeverDraw').textContent=rEuro(ff.portfolio_withdrawal_real_2030)+'/ano';
  document.querySelector('#rOutsideIncome').textContent=rEuro(ff.outside_income_net_target_2030)+'/ano';
@@ -371,8 +371,8 @@ Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetc
  document.querySelector('#rGuardrailRate').textContent=(foreverWR*100).toFixed(2)+'% • '+guard.label;
  document.querySelector('#rGuardrailAction').innerHTML='<strong>'+guard.label+':</strong> '+guard.action;
  document.querySelector('#rAllCash').textContent=fmt(a.house_cash_2030)+' @ 0%';
- document.querySelector('#rCashReserve').textContent=fmt(reserve)+' ('+ff.cash_strategy.reserve_years+' anos)';
- document.querySelector('#rInvestableRemainder').textContent=fmt(a.house_cash_2030-reserve);
+ document.querySelector('#rCashReserve').textContent=fmt(reserve)+' • Pot 1+2';
+ document.querySelector('#rInvestableRemainder').textContent=fmt(a.house_cash_2030-reserve)+' • Pot 3';
  document.querySelector('#rMcAllCash').textContent=(mcAll.successRate*100).toFixed(0)+'%';
  document.querySelector('#rMcReserve').textContent=(mcReserve.successRate*100).toFixed(0)+'%';
  rDrawForever(ff.deterministic_rates.map(rate=>rForeverScenario(d,rate)),d);
@@ -392,57 +392,24 @@ Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetc
 
 function rProjectMonthly(current,monthly,annual,months){const mr=Math.pow(1+annual,1/12)-1;let v=current;for(let i=0;i<months;i++)v=v*(1+mr)+monthly;return v}
 function rSyncRetirementFromFire(d,fire){
- const a=d.assumptions,p=d.projection_inputs,snap=new Date(fire.updated_at),months=Math.max(0,(a.retirement_start_year-snap.getUTCFullYear())*12-snap.getUTCMonth());
- const accumulationRate=(fire.projection&&Number.isFinite(fire.projection.plan_rate_annual))?fire.projection.plan_rate_annual:a.central_return_rate;
- const oldV=d.people.Victor.pension_balance_snapshot,oldR=d.people.Rosely.pension_balance_snapshot,oldTotal=oldV+oldR,vShare=oldTotal>0?oldV/oldTotal:.5,rShare=1-vShare;
- const breakdown=(fire.contribution_plan&&fire.contribution_plan.pension_breakdown)||{};
- const vMonthly=Number.isFinite(breakdown.Victor)?breakdown.Victor:d.people.Victor.monthly_pension_contribution;
- const rMonthly=Number.isFinite(breakdown.Rosely)?breakdown.Rosely:d.people.Rosely.monthly_pension_contribution;
- d.people.Victor.monthly_pension_contribution=vMonthly;d.people.Rosely.monthly_pension_contribution=rMonthly;
- const curV=fire.pension*vShare,curR=fire.pension*rShare,projV=rProjectMonthly(curV,vMonthly,accumulationRate,months),projR=rProjectMonthly(curR,rMonthly,accumulationRate,months);
- const projectedEtfs=rProjectMonthly(fire.etfs,(fire.contribution_plan&&fire.contribution_plan.etfs_monthly)||0,accumulationRate,months),basisRatio=p.projected_etfs_2030>0?p.projected_etf_cost_basis_2030/p.projected_etfs_2030:.65;
- d.people.Victor.pension_balance_snapshot=curV;d.people.Rosely.pension_balance_snapshot=curR;d.people.Victor.projected_pension_2030=projV;d.people.Rosely.projected_pension_2030=projR;
- p.pension_snapshot_date=String(fire.updated_at).slice(0,10);p.months_to_retirement=months;p.projected_etfs_2030=projectedEtfs;p.projected_etf_cost_basis_2030=projectedEtfs*basisRatio;p.projected_total_pensions_2030=projV+projR;p.projected_total_assets_2030=a.house_cash_2030+projectedEtfs+projV+projR;d.synced_fire_at=fire.updated_at;
+ const eng=window.FireRetirementEngine;if(!eng)throw new Error('retirement-engine.js not loaded');
+ const policy=d.opening_balance_policy||{},allowed=policy.allowed_modes||['official_plan','live_forecast'];let mode=policy.default_mode||'official_plan';
+ try{const saved=localStorage.getItem('fire_retirement_opening_mode');if(saved&&allowed.includes(saved))mode=saved}catch(e){}
+ const opening=eng.buildOpeningState(d,fire,mode),p=d.projection_inputs,breakdown=(fire.contribution_plan&&fire.contribution_plan.pension_breakdown)||{};
+ d._engineOpening=opening;d._fireData=fire;d.assumptions.opening_balance_mode=mode;
+ if(Number.isFinite(breakdown.Victor))d.people.Victor.monthly_pension_contribution=breakdown.Victor;
+ if(Number.isFinite(breakdown.Rosely))d.people.Rosely.monthly_pension_contribution=breakdown.Rosely;
+ d.people.Victor.projected_pension_2030=opening.pensionVictor;d.people.Rosely.projected_pension_2030=opening.pensionRosely;
+ p.projected_etfs_2030=opening.etf;p.projected_etf_cost_basis_2030=opening.etfCostBasis;p.projected_total_pensions_2030=opening.totalPension;p.projected_total_assets_2030=opening.totalAssets;
+ const snap=new Date(fire.updated_at);p.pension_snapshot_date=String(fire.updated_at).slice(0,10);p.months_to_retirement=Math.max(0,(2030-snap.getUTCFullYear())*12-snap.getUTCMonth());
+ d.synced_fire_at=fire.updated_at;
 }
-
-
 function rBridgeFirstPensionYear(d,accessAge){
- const start=d.assumptions.retirement_start_year,end=(d.forever_fire&&d.forever_fire.end_year)||2100;
- for(let year=start;year<=end;year++){
-   if(rAge(d.people.Victor.birth_date,year)>=accessAge||rAge(d.people.Rosely.birth_date,year)>=accessAge)return year;
- }
- return end;
+ const eng=window.FireRetirementEngine;
+ return Math.min(eng.firstFullEligibleYear(d.people.Victor.birth_date,accessAge),eng.firstFullEligibleYear(d.people.Rosely.birth_date,accessAge));
 }
 function rBridgeScenario(d,accessAge){
- const a=d.assumptions,t=d.tax_rules,p=d.projection_inputs,cfg=d.bridge_to_pension||{};
- const firstPensionYear=rBridgeFirstPensionYear(d,accessAge),bridgeYears=Math.max(0,firstPensionYear-a.retirement_start_year);
- let cash=a.house_cash_2030,etf=p.projected_etfs_2030,costBasis=p.projected_etf_cost_basis_2030;
- const accessibleStart=cash+etf;
- let lifestyleGap=0,etfTax=0,shortfall=0,lastFundedYear=a.retirement_start_year-1;
- for(let year=a.retirement_start_year;year<firstPensionYear;year++){
-   cash*=1+a.cash_return_rate;
-   etf*=1+a.central_return_rate;
-   const lifestyle=a.lifestyle_annual_2030*Math.pow(1+a.inflation_rate,year-a.retirement_start_year);
-   const salary=(year>=a.barista_start_year&&year<=a.barista_end_year)?a.barista_income_gross_2030*Math.pow(1+a.barista_income_growth_rate,year-a.barista_start_year):0;
-   const salaryCalc=rGeneralTax(salary,0,year,a,t),workNet=salary-salaryCalc.tax-salaryCalc.ss;
-   let need=Math.max(0,lifestyle-workNet);
-   lifestyleGap+=need;
-   const cashUsed=Math.min(cash,need);cash-=cashUsed;need-=cashUsed;
-   if(need>0){
-     const er=rSellEtfForNet(etf,costBasis,need,year,a,t);
-     etf=Math.max(0,etf-er.sale);costBasis=er.costBasis;etfTax+=er.tax;
-     need=Math.max(0,need-(er.sale-er.tax));
-   }
-   lastFundedYear=year;
-   if(need>1){shortfall=need;break}
- }
- const remainingAccessible=Math.max(0,cash+etf);
- const drawBase=(d.forever_fire&&d.forever_fire.portfolio_withdrawal_real_2030)||30000;
- const bufferYears=cfg.safety_buffer_years||2;
- const safetyBuffer=drawBase*Math.pow(1+a.inflation_rate,Math.max(0,firstPensionYear-a.retirement_start_year))*bufferYears;
- const status=shortfall>1?'red':remainingAccessible>=safetyBuffer?'green':'amber';
- const statusLabel=status==='green'?'🟢 BRIDGE READY':status==='amber'?'🟡 THIN BUFFER':'🔴 BRIDGE GAP';
- return {accessAge,firstPensionYear,bridgeYears,accessibleStart,lifestyleGap,etfTax,remainingAccessible,safetyBuffer,status,statusLabel,shortfall,lastFundedYear};
+ return window.FireRetirementEngine.bridgeScenario(d,{opening:d._engineOpening,accessAge,policy:(d.withdrawal_policies&&d.withdrawal_policies.default)||'current_waterfall'});
 }
 function rRenderBridgeTable(d){
  const cfg=d.bridge_to_pension||{scenarios:d.assumptions.pension_access_age_scenarios};
@@ -468,37 +435,22 @@ function rGuardrailStatus(rate,g){
  return {label:'🔴 Protect principal',action:'Reduza o draw discricionário e/ou aumente renda externa até o portfolio draw voltar para 3% ou menos.'};
 }
 function rForeverScenario(d,rate){
- const a=d.assumptions,p=d.projection_inputs,f=d.forever_fire;
- let cash=Math.min(a.house_cash_2030,f.portfolio_withdrawal_real_2030*f.cash_strategy.reserve_years),invested=p.projected_total_assets_2030-cash,rows=[];
- for(let year=a.retirement_start_year;year<=f.end_year;year++){
-  const i=year-a.retirement_start_year;cash*=1+a.cash_return_rate;invested*=1+rate;
-  const w=f.portfolio_withdrawal_real_2030*Math.pow(1+a.inflation_rate,i),c=Math.min(cash,w);cash-=c;
-  const rem=w-c,use=Math.min(invested,rem);invested-=use;
-  const shortfall=Math.max(0,rem-use),real=(cash+invested)/Math.pow(1+a.inflation_rate,i);
-  rows.push({year,real:Math.max(0,real),shortfall});
-  if(shortfall>1){for(let y=year+1;y<=f.end_year;y++)rows.push({year:y,real:0,shortfall:1});break}
- }
+ const eng=window.FireRetirementEngine,md=eng.clone(d),f=d.forever_fire;
+ md.assumptions.lifestyle_annual_2030=f.portfolio_withdrawal_real_2030;md.assumptions.barista_income_gross_2030=0;md.assumptions.barista_end_year=md.assumptions.retirement_start_year-1;
+ const sim=eng.simulate(md,{opening:d._engineOpening,accessAge:d.assumptions.default_pension_access_age,endYear:f.end_year,returnProvider:()=>rate,policy:(d.withdrawal_policies&&d.withdrawal_policies.default)||'current_waterfall'});
+ const rows=sim.rows.map(r=>({year:r.year,real:Math.max(0,r.netWorth/Math.pow(1+d.assumptions.inflation_rate,r.year-d.assumptions.retirement_start_year)),shortfall:r.shortfall}));
+ if(sim.firstShortfallYear){for(let y=sim.firstShortfallYear+1;y<=f.end_year;y++)rows.push({year:y,real:0,shortfall:1})}
  return {rate,rows};
 }
 function rMulberry32(seed){return function(){let t=seed+=0x6D2B79F5;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
 function rNormal(rand){let u=0,v=0;while(!u)u=rand();while(!v)v=rand();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
 function rPct(a,p){const x=(a.length-1)*p,i=Math.floor(x),r=x-i;return a[i+1]!==undefined?a[i]+r*(a[i+1]-a[i]):a[i]}
 function rMonteCarlo(d,mode){
- const a=d.assumptions,p=d.projection_inputs,f=d.forever_fire,m=f.monte_carlo,rand=rMulberry32(m.seed),ends=[];let okN=0;
- const startCash=mode==='all_cash'?a.house_cash_2030:Math.min(a.house_cash_2030,f.portfolio_withdrawal_real_2030*f.cash_strategy.reserve_years);
- for(let s=0;s<m.simulations;s++){
-  let cash=startCash,invested=p.projected_total_assets_2030-startCash,ok=true;
-  for(let year=a.retirement_start_year;year<=f.end_year;year++){
-   const i=year-a.retirement_start_year;cash*=1+a.cash_return_rate;
-   invested*=1+Math.max(m.return_floor,m.expected_nominal_return+m.annual_volatility*rNormal(rand));
-   const w=f.portfolio_withdrawal_real_2030*Math.pow(1+a.inflation_rate,i),c=Math.min(cash,w);cash-=c;
-   const rem=w-c;if(invested<rem){ok=false;invested=0;break}invested-=rem;
-  }
-  if(ok)okN++;
-  ends.push(Math.max(0,(cash+invested)/Math.pow(1+a.inflation_rate,f.end_year-a.retirement_start_year)));
- }
- ends.sort((x,y)=>x-y);
- return {successRate:okN/m.simulations,medianRealEnd:rPct(ends,.5),p10:rPct(ends,.1),p90:rPct(ends,.9)};
+ const eng=window.FireRetirementEngine,md=eng.clone(d),f=d.forever_fire,m=f.monte_carlo;
+ md.assumptions.lifestyle_annual_2030=f.portfolio_withdrawal_real_2030;md.assumptions.barista_income_gross_2030=0;md.assumptions.barista_end_year=md.assumptions.retirement_start_year-1;
+ md.asset_class_assumptions=md.asset_class_assumptions||{};md.asset_class_assumptions.equity={...(md.asset_class_assumptions.equity||{}),return:m.expected_nominal_return||.05,vol:m.annual_volatility||.12};md.asset_class_assumptions.pension={...(md.asset_class_assumptions.pension||{}),return:m.expected_nominal_return||.05,vol:m.annual_volatility||.12};
+ const policy=mode==='reserve'?'three_bucket':'current_waterfall',mc=eng.monteCarlo(md,{opening:d._engineOpening,policy,accessAge:d.assumptions.default_pension_access_age,simulations:m.simulations,endYear:f.end_year,seed:m.seed});
+ return {successRate:mc.successRate,medianRealEnd:mc.medianRealEnd,p10:mc.p10RealEnd,p90:mc.p90RealEnd};
 }
 function rDrawForever(sc,d){
  const svg=document.querySelector('#rForeverChart'),W=900,H=300,p={l:58,r:16,t:18,b:38},start=d.projection_inputs.projected_total_assets_2030;
@@ -646,70 +598,15 @@ function rPensionTaxForGross(vGross,rGross,roselySalary,year,d,baseVictorPension
  return (withR-baseR)+(withV-baseV);
 }
 function rSimulateEngine(d,accessAge,returnProvider,endYear,statePensionFraction=0){
- const a=d.assumptions,t=d.tax_rules,p=d.projection_inputs;
- let cash=a.house_cash_2030,etf=p.projected_etfs_2030,costBasis=p.projected_etf_cost_basis_2030;
- let victorP=d.people.Victor.projected_pension_2030,roselyP=d.people.Rosely.projected_pension_2030;
- const rows=[];let salaryTax=0,statePensionTax=0,pensionTax=0,etfTax=0,totalSS=0,firstShortfallYear=null,cashEndYear=null,etfStartYear=null,pensionStartYear=null,totalArfGross=0,totalArfReinvested=0,totalStatePensionGross=0;
- for(let year=a.retirement_start_year;year<=endYear;year++){
-   const startCash=cash,startEtf=etf,startVictorP=victorP,startRoselyP=roselyP;
-   const returnRate=Math.max(-.95,typeof returnProvider==='function'?returnProvider(year):returnProvider);
-   cash*=1+a.cash_return_rate;etf*=1+returnRate;victorP*=1+returnRate;roselyP*=1+returnRate;
-   const arfBaseVictor=victorP,arfBaseRosely=roselyP;
-   const lifestyle=a.lifestyle_annual_2030*Math.pow(1+a.inflation_rate,year-a.retirement_start_year);
-   const salary=(year>=a.barista_start_year&&year<=a.barista_end_year)?a.barista_income_gross_2030*Math.pow(1+a.barista_income_growth_rate,year-a.barista_start_year):0;
-   const stateVictor=rStatePensionGross(d,'Victor',year,statePensionFraction),stateRosely=rStatePensionGross(d,'Rosely',year,statePensionFraction),stateGross=stateVictor+stateRosely;
-   totalStatePensionGross+=stateGross;
-   const salaryOnly=rGeneralTax(salary,0,year,a,t),baseRosely=rGeneralTax(salary,stateRosely,year,a,t),baseVictor=rGeneralTax(0,stateVictor,year,a,t);
-   const baseTax=baseRosely.tax+baseVictor.tax,stateTaxYear=Math.max(0,baseTax-salaryOnly.tax),workNet=salary+stateGross-baseTax-baseRosely.ss;
-   salaryTax+=salaryOnly.tax;statePensionTax+=stateTaxYear;totalSS+=baseRosely.ss;
-   let need=Math.max(0,lifestyle-workNet);
-   const cashUsed=Math.min(cash,need);cash-=cashUsed;need-=cashUsed;if(!cashEndYear&&cash<=.5)cashEndYear=year;
-
-   let pensionGross=0,pensionTaxYear=0,victorWithdraw=0,roselyWithdraw=0,arfFloorGross=0,arfReinvestedNet=0;
-   if(need>0){
-     const pr=rPensionForNet(victorP,roselyP,salary,need,year,accessAge,d,stateVictor,stateRosely);
-     pensionGross=pr.gross;victorWithdraw=pr.victor;roselyWithdraw=pr.rosely;pensionTaxYear=pr.tax;
-     if(pensionGross>0&&!pensionStartYear)pensionStartYear=year;
-     victorP=Math.max(0,victorP-victorWithdraw);roselyP=Math.max(0,roselyP-roselyWithdraw);
-     need=Math.max(0,need-(pensionGross-pensionTaxYear));
-   }
-
-   const floorV=arfBaseVictor*rArfRate(d,d.people.Victor.birth_date,year,arfBaseVictor,accessAge),floorR=arfBaseRosely*rArfRate(d,d.people.Rosely.birth_date,year,arfBaseRosely,accessAge);
-   const extraV=Math.min(victorP,Math.max(0,floorV-victorWithdraw)),extraR=Math.min(roselyP,Math.max(0,floorR-roselyWithdraw)),extraGross=extraV+extraR;
-   if(extraGross>0){
-     const newV=victorWithdraw+extraV,newR=roselyWithdraw+extraR,newTax=rPensionTaxForGross(newV,newR,salary,year,d,stateVictor,stateRosely),extraTax=Math.max(0,newTax-pensionTaxYear);
-     victorP=Math.max(0,victorP-extraV);roselyP=Math.max(0,roselyP-extraR);victorWithdraw=newV;roselyWithdraw=newR;pensionGross+=extraGross;pensionTaxYear=newTax;arfFloorGross=extraGross;
-     let extraNet=Math.max(0,extraGross-extraTax),useForNeed=Math.min(need,extraNet);need-=useForNeed;extraNet-=useForNeed;
-     if(extraNet>0){etf+=extraNet;costBasis+=extraNet;arfReinvestedNet=extraNet}
-     totalArfGross+=extraGross;totalArfReinvested+=arfReinvestedNet;
-     if(pensionGross>0&&!pensionStartYear)pensionStartYear=year;
-   }
-   pensionTax+=pensionTaxYear;
-
-   let etfSale=0,etfGain=0,etfTaxYear=0;
-   if(need>0){
-     const er=rSellEtfForNet(etf,costBasis,need,year,a,t);etfSale=er.sale;etfGain=er.gain;etfTaxYear=er.tax;costBasis=er.costBasis;etf=Math.max(0,etf-etfSale);etfTax+=etfTaxYear;
-     if(etfSale>0&&!etfStartYear)etfStartYear=year;need=Math.max(0,need-(etfSale-etfTaxYear));
-   }
-   const totalTaxYear=baseTax+pensionTaxYear+etfTaxYear,pensionEnd=victorP+roselyP,netWorth=cash+etf+pensionEnd;
-   rows.push({year,ageVictor:rAge(d.people.Victor.birth_date,year),ageRosely:rAge(d.people.Rosely.birth_date,year),returnRate,lifestyle,salaryGross:salary,statePensionGross:stateGross,statePensionVictor:stateVictor,statePensionRosely:stateRosely,workNet,cashUsed,etfSale,etfGain,pensionGross,victorWithdraw,roselyWithdraw,arfFloorGross,arfReinvestedNet,salaryTax:salaryOnly.tax,statePensionTax:stateTaxYear,pensionTax:pensionTaxYear,etfTax:etfTaxYear,tax:totalTaxYear,ss:baseRosely.ss,startCash,startEtf,startPension:startVictorP+startRoselyP,cash,etf,costBasis,victorP,roselyP,pension:pensionEnd,netWorth,shortfall:need});
-   if(need>1){firstShortfallYear=year;break}
- }
- return {accessAge,rows,firstShortfallYear,cashEndYear,etfStartYear,pensionStartYear,salaryTax,statePensionTax,pensionTax,etfTax,totalTax:salaryTax+statePensionTax+pensionTax+etfTax,totalSS,totalArfGross,totalArfReinvested,totalStatePensionGross,statePensionFraction};
+ return window.FireRetirementEngine.simulate(d,{opening:d._engineOpening,accessAge,returnProvider,endYear,statePensionFraction,policy:(d.withdrawal_policies&&d.withdrawal_policies.default)||'current_waterfall'});
 }
 function rSimulate(d,accessAge,returnRate){
  const x=rSimulateEngine(d,accessAge,()=>returnRate,d.assumptions.projection_end_year);x.returnRate=returnRate;return x;
 }
 function rFullPlanMonteCarlo(d,accessAge,opts={}){
- const m=d.full_plan_monte_carlo||{},sims=Number.isFinite(opts.simulations)?opts.simulations:(m.simulations||1500),seedOffset=Number.isFinite(opts.seedOffset)?opts.seedOffset:0,endYear=Number.isFinite(opts.endYear)?opts.endYear:(m.end_year||2100),rand=rMulberry32((m.seed||20261009)+accessAge*101+seedOffset),ends=[],failYears=[];let success=0;
- for(let s=0;s<sims;s++){
-   const sim=rSimulateEngine(d,accessAge,()=>Math.max(-.95,(m.expected_nominal_return||.05)+(m.annual_volatility||.12)*rNormal(rand)),endYear);
-   const ok=!sim.firstShortfallYear;if(ok)success++;else failYears.push(sim.firstShortfallYear);
-   const last=sim.rows[sim.rows.length-1],years=Math.max(0,(last?last.year:d.assumptions.retirement_start_year)-d.assumptions.retirement_start_year),real=ok&&last?last.netWorth/Math.pow(1+d.assumptions.inflation_rate,years):0;
-   ends.push(Math.max(0,real));
- }
- ends.sort((a,b)=>a-b);failYears.sort((a,b)=>a-b);
- return {accessAge,successRate:success/sims,p10RealEnd:rPct(ends,.1),medianRealEnd:rPct(ends,.5),p90RealEnd:rPct(ends,.9),medianFailureYear:failYears.length?Math.round(rPct(failYears,.5)):null,simulations:sims,endYear};
+ const m=d.full_plan_monte_carlo||{},sims=Number.isFinite(opts.simulations)?opts.simulations:(m.simulations||1500),seedOffset=Number.isFinite(opts.seedOffset)?opts.seedOffset:0,endYear=Number.isFinite(opts.endYear)?opts.endYear:(m.end_year||2100);
+ const x=window.FireRetirementEngine.monteCarlo(d,{opening:d._engineOpening,accessAge,simulations:sims,endYear,seed:(m.seed||20261009)+seedOffset,policy:(d.withdrawal_policies&&d.withdrawal_policies.default)||'current_waterfall'});
+ return {accessAge,successRate:x.successRate,p10RealEnd:x.p10RealEnd,medianRealEnd:x.medianRealEnd,p90RealEnd:x.p90RealEnd,medianFailureYear:x.medianFailureYear,simulations:x.simulations,endYear:x.endYear};
 }
 function rRenderFullMcTable(d){
  const tb=document.querySelector('#rFullMcTable');tb.innerHTML='';const out={};
@@ -802,20 +699,29 @@ function rSetupRetirementDetails(){
  const apply=()=>{details.forEach(el=>el.classList.toggle('is-collapsed',collapsed));btn.textContent=collapsed?'Show detailed analysis':'Hide detailed analysis'};
  apply();btn.addEventListener('click',()=>{collapsed=!collapsed;apply()});btn.dataset.ready='1';
 }
-function rRunSelfTests(d){
- let passed=0,total=10;
- try{if(rArfRate(d,d.people.Victor.birth_date,2030,500000,55)===0)passed++}catch(e){}
- try{let y=2030;while(rAgeAtStartOfYear(d.people.Victor.birth_date,y)<60)y++;if(Math.abs(rArfRate(d,d.people.Victor.birth_date,y,500000,55)-((d.pension_rules&&d.pension_rules.imputed_rate_under_70)||.04))<1e-9)passed++}catch(e){}
- try{let y=2030;while(rAgeAtStartOfYear(d.people.Victor.birth_date,y)<70)y++;if(Math.abs(rArfRate(d,d.people.Victor.birth_date,y,500000,55)-((d.pension_rules&&d.pension_rules.imputed_rate_70_plus)||.05))<1e-9)passed++}catch(e){}
- try{let y=2030;while(rAgeAtStartOfYear(d.people.Victor.birth_date,y)<60)y++;if(Math.abs(rArfRate(d,d.people.Victor.birth_date,y,2500000,55)-((d.pension_rules&&d.pension_rules.high_value_rate)||.06))<1e-9)passed++}catch(e){}
- try{const b=rBridgeScenario(d,d.assumptions.default_pension_access_age);if(Math.abs(b.accessibleStart-(d.assumptions.house_cash_2030+d.projection_inputs.projected_etfs_2030))<1)passed++}catch(e){}
- try{if(rStatePensionGross(d,'Victor',2040,1)===0)passed++}catch(e){}
- try{const y=rStatePensionStartYear(d,'Victor');if(rStatePensionGross(d,'Victor',y,1)>0)passed++}catch(e){}
- try{const cp=window.__fireData&&window.__fireData.contribution_plan;if(!cp||Math.abs((cp.etfs_monthly+cp.pension_monthly)-cp.total_monthly)<1e-9)passed++}catch(e){}
- try{const base=d.assumptions.lifestyle_annual_2030,x=rLifestyleCopy(d,45000);if(d.assumptions.lifestyle_annual_2030===base&&x.assumptions.lifestyle_annual_2030===45000)passed++}catch(e){}
- try{const cfg=d.lifestyle_spending_lab||{},hi=rBridgeScenario(rLifestyleCopy(d,cfg.baseline_annual_2030||60000),d.assumptions.default_pension_access_age),lo=rBridgeScenario(rLifestyleCopy(d,45000),d.assumptions.default_pension_access_age);if(lo.lifestyleGap<=hi.lifestyleGap)passed++}catch(e){}
- return {passed,total};
-}function rAssetAt(sim,year){
+function rRunSelfTests(d,fire){
+ const v=window.FireRetirementEngine.validate(d,fire||d._fireData||window.__fireData||{});
+ return {passed:v.passed,total:v.total,tests:v.tests,warnings:v.warnings};
+}
+function rRenderDecisionAudit(d,fire,defaultSim,fullDefault){
+ const eng=window.FireRetirementEngine,val=eng.validate(d,fire),metrics=eng.metrics(d,defaultSim),meta=d.model_meta||{},taxMode=(d.etf_tax_data&&d.etf_tax_data.mode)||'proxy';
+ const bucket=eng.simulate(d,{opening:d._engineOpening,policy:'three_bucket',accessAge:d.assumptions.default_pension_access_age,endYear:(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.end_year)||2100});
+ const sel=document.querySelector('#rOpeningMode');if(sel){sel.value=d.assumptions.opening_balance_mode||'official_plan';if(!sel.dataset.ready){sel.addEventListener('change',()=>{try{localStorage.setItem('fire_retirement_opening_mode',sel.value)}catch(e){}location.reload()});sel.dataset.ready='1'}}
+ document.querySelector('#rAuditTests').textContent=val.passed+'/'+val.total+' passed';document.querySelector('#rAuditTests').style.color=val.passed===val.total?'var(--green)':'var(--red)';
+ document.querySelector('#rAuditModel').textContent=(meta.engine_version||'2.4')+' • '+(meta.assumption_version||'—');
+ document.querySelector('#rAuditTaxMode').textContent=taxMode==='tax_lots'?'FIFO tax lots':'Proxy cost basis';
+ document.querySelector('#rAuditFreshness').textContent=new Date(fire.updated_at).toLocaleDateString('pt-BR')+' • '+((fire.sync_warnings||[]).length)+' warning(s)';
+ document.querySelector('#rDecisionProtected').textContent=metrics.protectedSpendingYears.toFixed(1)+'y / '+bucket.protectedYears.toFixed(1)+'y';document.querySelector('#rDecisionProtectedCaption').textContent='Current / three-bucket';
+ document.querySelector('#rDecisionFirstEquity').textContent=metrics.firstEquitySale||'—';document.querySelector('#rDecisionFirstPension').textContent=metrics.firstPensionRequired||'—';document.querySelector('#rDecisionLowest').textContent=fmt(metrics.lowestPortfolioValue);
+ const deltas=eng.decisionDeltas(d,{opening:d._engineOpening,fire,simulations:(d.decision_analysis&&d.decision_analysis.simulations)||250,endYear:(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.end_year)||2100,policy:(d.withdrawal_policies&&d.withdrawal_policies.default)||'current_waterfall'}),dt=document.querySelector('#rDecisionDeltaTable');dt.innerHTML='';
+ deltas.cases.forEach(x=>{const tr=document.createElement('tr'),fail=x.firstShortfallScenario||'> '+((d.full_plan_monte_carlo&&d.full_plan_monte_carlo.end_year)||2100);tr.innerHTML='<td>'+x.label+'</td><td>'+(x.successDeltaPp>=0?'+':'')+x.successDeltaPp.toFixed(0)+' pp</td><td>'+fail+'</td><td>'+(x.terminalDelta>=0?'+':'-')+fmt(Math.abs(x.terminalDelta))+'</td>';dt.appendChild(tr)});
+ const stresses=eng.runStress(d,{opening:d._engineOpening,policy:'three_bucket',accessAge:d.assumptions.default_pension_access_age,endYear:2060}),st=document.querySelector('#rStressTable');st.innerHTML='';
+ stresses.forEach(x=>{const tr=document.createElement('tr');tr.innerHTML='<td>'+x.label+'</td><td>'+(x.firstShortfallYear||'> 2060')+'</td><td>'+(x.firstEquitySale||'—')+'</td><td>'+fmt(x.lowest)+'</td>';st.appendChild(tr)});
+ const paths=eng.generatePaths(d,{simulations:300,endYear:(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.end_year)||2100,seed:(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.seed)||20261009}),cur=eng.monteCarlo(d,{opening:d._engineOpening,paths,accessAge:d.assumptions.default_pension_access_age,policy:'current_waterfall'}),mix=eng.monteCarlo(d,{opening:d._engineOpening,paths,accessAge:d.assumptions.default_pension_access_age,policy:'three_bucket'});
+ document.querySelector('#rPolicyComparison').innerHTML='<strong>Withdrawal policy:</strong> on the same 300 market paths, current waterfall succeeds in <strong>'+Math.round(cur.successRate*100)+'%</strong> vs <strong>'+Math.round(mix.successRate*100)+'%</strong> for the three-bucket policy. This isolates policy impact from Monte Carlo noise.';
+ const warnings=[...val.warnings,...(fire.sync_warnings||[])];document.querySelector('#rAuditWarnings').innerHTML=warnings.map(x=>'⚠️ '+x).join('<br>');
+}
+function rAssetAt(sim,year){
  const row=sim.rows.find(r=>r.year===year);
  return row?fmt(row.netWorth):'—';
 }

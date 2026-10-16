@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-12T10:44:59Z",
+  "updated_at": "2026-10-16T20:58:00Z",
   "phase": "projection",
   "assumptions": {
     "retirement_start_year": 2030,
@@ -294,5 +294,189 @@
     "sustainable_search_simulations": 800,
     "sustainable_search_iterations": 8,
     "note": "What-if only. The official retirement baseline remains €60k/year in 2030 euros; scenario selections are browser-side and do not overwrite the plan."
+  },
+  "model_meta": {
+    "engine_version": "2.4.0",
+    "assumption_version": "2026-10-16",
+    "calculation_engine": "retirement-engine.js",
+    "return_timing": "annual return before annual withdrawals",
+    "note": "Decision-engine refactor. Dashboard version remains V2.3; existing functionality and official accumulation source-of-truth are preserved."
+  },
+  "opening_balance_policy": {
+    "default_mode": "official_plan",
+    "allowed_modes": [
+      "official_plan",
+      "live_forecast"
+    ],
+    "official_source": "data.json monthly Dec/29 path",
+    "live_source": "latest FIRE balances projected to Dec 2029 with official contribution plan",
+    "note": "Official Plan remains the retirement baseline. Live Forecast is an alternative outlook and must not overwrite the official target path."
+  },
+  "etf_tax_data": {
+    "mode": "proxy",
+    "proxy": {
+      "official_cost_basis_2030": 241200,
+      "current_cost_basis": null,
+      "note": "Fallback only. Future contributions are added at 100% basis in Live Forecast; replace with complete broker tax lots before real withdrawals."
+    },
+    "tax_lots": [],
+    "lot_schema": [
+      "broker",
+      "isin",
+      "acquisition_date",
+      "market_value",
+      "cost_basis"
+    ],
+    "fifo_ready": true
+  },
+  "pension_eligibility": {
+    "status": "unverified",
+    "annual_timing": "next_full_year",
+    "people": {
+      "Victor": {
+        "status": "unverified",
+        "access_allowed": true,
+        "note": "Scenario ages are planning assumptions until each pension scheme's legal access rules are verified."
+      },
+      "Rosely": {
+        "status": "unverified",
+        "access_allowed": true,
+        "note": "Scenario ages are planning assumptions until each pension scheme's legal access rules are verified."
+      }
+    },
+    "note": "The annual engine uses the first full calendar year after the relevant birthday as a conservative timing convention."
+  },
+  "asset_class_assumptions": {
+    "cash": {
+      "return": 0.025,
+      "vol": 0.005
+    },
+    "short_bonds": {
+      "return": 0.03,
+      "vol": 0.04
+    },
+    "growth_bonds": {
+      "return": 0.03,
+      "vol": 0.06
+    },
+    "equity": {
+      "return": 0.05,
+      "vol": 0.15
+    },
+    "pension": {
+      "return": 0.05,
+      "vol": 0.11
+    },
+    "equity_bond_correlation": 0.2,
+    "note": "Planning assumptions for mixed/bucket policy and Monte Carlo. The deterministic official baseline still uses assumptions.central_return_rate where explicitly selected."
+  },
+  "withdrawal_policies": {
+    "default": "current_waterfall",
+    "current_waterfall": {
+      "order": [
+        "salary_and_state_pension_net",
+        "house_cash",
+        "eligible_pension",
+        "taxable_etfs"
+      ],
+      "note": "Preserves V2.3 default behavior."
+    },
+    "three_bucket": {
+      "pot1": 60000,
+      "pot2": 60000,
+      "pot1_return": 0.025,
+      "growth_equity_weight": 0.6,
+      "allocation_scenarios": [
+        0.4,
+        0.6,
+        0.8
+      ],
+      "equity_drawdown_threshold": 0.85,
+      "refill_target_years": 2,
+      "equity_return_default": 0.05,
+      "note": "€60k Pot 1, €60k Pot 2, remainder in Pot 3. Protected assets are consumed before forced equity sales; 60/40 is the central growth-bucket allocation."
+    }
+  },
+  "stress_scenarios": {
+    "scenarios": [
+      {
+        "id": "early_crash",
+        "label": "Early equity crash",
+        "equity": {
+          "0": -0.35,
+          "1": -0.1,
+          "2": 0.08,
+          "3": 0.07
+        },
+        "pension": {
+          "0": -0.18,
+          "1": -0.05,
+          "2": 0.06,
+          "3": 0.06
+        }
+      },
+      {
+        "id": "lost_decade",
+        "label": "Prolonged low returns",
+        "years": 10,
+        "equity_return": 0.01,
+        "bond_return": 0.01,
+        "pension_return": 0.02
+      },
+      {
+        "id": "inflation_shock",
+        "label": "Early inflation shock",
+        "inflation_rates": [
+          0.06,
+          0.05,
+          0.04,
+          0.03
+        ]
+      },
+      {
+        "id": "double_shock",
+        "label": "Crash + lost Barista income",
+        "equity": {
+          "0": -0.3,
+          "1": -0.08,
+          "2": 0.06
+        },
+        "pension": {
+          "0": -0.15,
+          "1": -0.04,
+          "2": 0.05
+        },
+        "barista_off_years": 3
+      }
+    ],
+    "note": "Small deterministic set chosen to test materially different failure modes, not to forecast markets."
+  },
+  "decision_analysis": {
+    "simulations": 250,
+    "common_random_numbers": true,
+    "deltas": [
+      "spend_minus_10k",
+      "barista_plus_10k",
+      "pension_50_vs_55",
+      "accessible_plus_100k"
+    ],
+    "note": "All stochastic decision comparisons use identical market paths so the delta reflects the decision rather than Monte Carlo noise."
+  },
+  "model_validation": {
+    "accounting_tolerance_eur": 0.01,
+    "ci_command": "node tests/retirement-engine.test.js",
+    "checks": [
+      "opening_balance_reconciliation",
+      "household_pension_reconciliation",
+      "finite_balances",
+      "manual_known_case",
+      "zero_return",
+      "zero_tax",
+      "no_barista_monotonicity",
+      "spending_monotonicity",
+      "starting_assets_monotonicity",
+      "monte_carlo_reproducibility",
+      "bucket_conservation"
+    ]
   }
 }

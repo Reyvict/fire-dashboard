@@ -188,6 +188,28 @@
     <div class="summary-actions"><button class="detail-toggle" id="rToggleDetails" type="button">Hide detailed analysis</button></div>
   </section>
 
+  <section class="card" id="rModelAuditSection">
+    <div class="chart-head"><div><h2>🧪 Model Audit / Decision Engine</h2><div class="small">Traceable opening balances, explicit proxies, common-path decision deltas and deterministic sequence-risk stresses.</div></div><span class="pill" id="rAuditTests">Checking…</span></div>
+    <div class="grid" style="margin-top:12px">
+      <div class="card"><div class="label">Opening balance source</div><select id="rOpeningMode"><option value="official_plan">Official Plan</option><option value="live_forecast">Live Forecast</option></select><div class="small">Official Plan remains the default source of truth.</div></div>
+      <div class="card"><div class="label">Model / assumptions</div><div class="value" id="rAuditModel"></div><div class="small">Versioned financial engine</div></div>
+      <div class="card"><div class="label">ETF tax basis</div><div class="value" id="rAuditTaxMode"></div><div class="small">FIFO-ready; proxy is visibly flagged until lots are complete.</div></div>
+      <div class="card"><div class="label">Data freshness</div><div class="value" id="rAuditFreshness"></div><div class="small">FIRE snapshot + sync warnings</div></div>
+    </div>
+    <div class="outcomes" style="margin-top:9px">
+      <div class="outcome"><div class="label">Protected spending runway</div><div class="n green" id="rDecisionProtected"></div><div class="caption" id="rDecisionProtectedCaption"></div></div>
+      <div class="outcome"><div class="label">First equity sale</div><div class="n" id="rDecisionFirstEquity"></div><div class="caption">Current baseline</div></div>
+      <div class="outcome"><div class="label">First pension required</div><div class="n" id="rDecisionFirstPension"></div><div class="caption">Scheme eligibility remains an explicit assumption</div></div>
+      <div class="outcome"><div class="label">Lowest portfolio value</div><div class="n amber" id="rDecisionLowest"></div><div class="caption">Deterministic baseline</div></div>
+    </div>
+    <div class="two" style="margin-top:10px">
+      <div><h3>Decision deltas</h3><div style="overflow-x:auto"><table><thead><tr><th>Change</th><th>MC success Δ</th><th>First shortfall</th><th>Terminal Δ</th></tr></thead><tbody id="rDecisionDeltaTable"></tbody></table></div></div>
+      <div><h3>Sequence-risk stresses • three-bucket</h3><div style="overflow-x:auto"><table><thead><tr><th>Stress</th><th>Shortfall</th><th>1st equity sale</th><th>Lowest portfolio</th></tr></thead><tbody id="rStressTable"></tbody></table></div></div>
+    </div>
+    <div class="callout small" id="rPolicyComparison"></div>
+    <div class="small" id="rAuditWarnings" style="margin-top:10px"></div>
+  </section>
+
   <div class="grid">
     <div class="card"><div class="label">Lifestyle em 2030</div><div class="value" id="rLifestyle2030"></div><div class="small">Cresce 2%/ano</div></div>
     <div class="card"><div class="label">Barista income • Rosely</div><div class="value" id="rBaristaGross"></div><div class="small" id="rBaristaNet"></div></div>
@@ -298,7 +320,7 @@
   <section class="card">
     <div class="chart-head">
       <div><h2>Patrimônio real até 2100 • euros de 2030</h2><div class="legend"><span><i class="dot" style="background:#f4c95d"></i>4%</span><span><i class="dot" style="background:#7c9cff"></i>5%</span><span><i class="dot" style="background:#35d07f"></i>6%</span><span><i class="dot" style="background:#f5f7fb"></i>Principal inicial</span></div></div>
-      <div class="small">Retirada de €30k reais/ano, inflação 2%, reserva inicial de 2 anos em cash. Impostos ficam no modelo fiscal detalhado abaixo.</div>
+      <div class="small">Retirada de €30k reais/ano usando o mesmo decision engine e impostos do modelo. A comparação de políticas aparece ao lado.</div>
     </div>
     <svg id="rForeverChart" viewBox="0 0 900 300" preserveAspectRatio="none"></svg>
   </section>
@@ -313,13 +335,13 @@
       <div class="callout small" id="rGuardrailAction"></div>
     </section>
     <section class="card">
-      <h2>💶 €250k house cash • drag comparison</h2>
-      <div class="row"><span>Modelo atual em cash</span><b id="rAllCash"></b></div>
-      <div class="row" style="margin-top:9px"><span>Reserva de 2 anos</span><b id="rCashReserve"></b></div>
-      <div class="row" style="margin-top:9px"><span>Capital liberado para investir</span><b id="rInvestableRemainder"></b></div>
-      <div class="row" style="margin-top:9px"><span>MC success • €250k cash</span><b id="rMcAllCash"></b></div>
-      <div class="row" style="margin-top:9px"><span>MC success • 2y reserve</span><b id="rMcReserve"></b></div>
-      <div class="small" style="margin-top:12px">Comparação de planejamento, não instrução para investir os proceeds da casa. Monte Carlo usa 5% retorno médio nominal e 12% volatilidade.</div>
+      <h2>💶 €250k house cash • policy comparison</h2>
+      <div class="row"><span>Current waterfall • house cash</span><b id="rAllCash"></b></div>
+      <div class="row" style="margin-top:9px"><span>Protected buckets • Pot 1 + Pot 2</span><b id="rCashReserve"></b></div>
+      <div class="row" style="margin-top:9px"><span>Growth bucket • Pot 3</span><b id="rInvestableRemainder"></b></div>
+      <div class="row" style="margin-top:9px"><span>MC success • current waterfall</span><b id="rMcAllCash"></b></div>
+      <div class="row" style="margin-top:9px"><span>MC success • three-bucket</span><b id="rMcReserve"></b></div>
+      <div class="small" style="margin-top:12px">Policy comparison using the same retirement engine. The mixed policy keeps protected buckets and a 60/40 growth bucket; equity planning return defaults to 5%.</div>
     </section>
   </div>
 
@@ -440,5 +462,6 @@
 </div>
 <footer>FIRE Hub • Accumulation + Retirement Spending</footer>
 </main>
+<script src="retirement-engine.js"></script>
 <script src="app.js"></script>
 </body></html>
