@@ -317,17 +317,25 @@
     "proxy": {
       "official_cost_basis_2030": 241200,
       "current_cost_basis": null,
-      "note": "Fallback only. Future contributions are added at 100% basis in Live Forecast; replace with complete broker tax lots before real withdrawals."
+      "note": "Fallback only. Future contributions are added at 100% basis in Live Forecast; replace with complete broker tax lots before real withdrawals. Raw broker lots should retain quantity, unit cost and fees before normalization."
     },
     "tax_lots": [],
-    "lot_schema": [
+    "fifo_ready": true,
+    "raw_lot_schema": [
+      "broker",
+      "isin",
+      "acquisition_date",
+      "quantity",
+      "unit_cost",
+      "fees"
+    ],
+    "normalized_lot_schema": [
       "broker",
       "isin",
       "acquisition_date",
       "market_value",
       "cost_basis"
-    ],
-    "fifo_ready": true
+    ]
   },
   "pension_eligibility": {
     "status": "unverified",
@@ -469,6 +477,7 @@
       "opening_balance_reconciliation",
       "household_pension_reconciliation",
       "finite_balances",
+      "annual_asset_accounting",
       "manual_known_case",
       "zero_return",
       "zero_tax",

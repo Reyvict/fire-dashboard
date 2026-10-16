@@ -75,6 +75,7 @@
     }
     const house=a.house_cash_2030||0;
     const v=pension*shares.Victor,r=pension*shares.Rosely;
+    warnings.push('Victor/Rosely opening pension ownership uses the existing projected-pension proportions until scheme-level opening balances are independently reconciled.');
     if((taxCfg.mode||'proxy')!=='tax_lots')warnings.push('ETF realised-gain taxation is using the proportional cost-basis proxy until complete tax lots are loaded.');
     const eligibility=d.pension_eligibility||{};
     if(eligibility.status!=='verified')warnings.push('Pension legal-access rules remain unverified; access-age scenarios are planning assumptions.');
@@ -190,6 +191,7 @@
 
   function validate(d,fire,opts){opts=opts||{};const tests=[],push=(name,ok,detail)=>tests.push({name,ok:!!ok,detail:detail||''});const opening=buildOpeningState(d,fire,'official_plan');const row=officialRow(fire);push('Opening balance reconciles to official accumulation path',!!row&&Math.abs(opening.etf-row.etfs)<.01&&Math.abs(opening.totalPension-row.pension)<.01,'Official Dec-2029 ETF/pension values');push('Household pension ownership reconciles',Math.abs(opening.pensionVictor+opening.pensionRosely-opening.totalPension)<.01);
     const base=simulate(d,{opening,endYear:Math.min(2060,(d.full_plan_monte_carlo||{}).end_year||2100)});push('Annual asset balances are finite',base.rows.every(r=>Number.isFinite(r.netWorth)&&r.netWorth>=-1));
+    const tol=(d.model_validation&&d.model_validation.accounting_tolerance_eur)||0.01;push('Annual asset accounting reconciles',base.rows.every(r=>Math.abs(r.assetError||0)<=tol),'Opening assets + returns - gross asset withdrawals + ARF reinvestment = closing assets');
     let v=100000;for(let i=0;i<10;i++)v-=10000;push('Known hand case: €100k less €10k × 10 = €0',Math.abs(v)<.01);
     const zd=clone(d);zd.assumptions.central_return_rate=0;const z=simulate(zd,{opening:{...opening,houseCash:100000,etf:0,etfCostBasis:0,pensionVictor:0,pensionRosely:0,totalPension:0,totalAssets:100000,warnings:[]},endYear:2030,returnProvider:()=>({cash:0,short_bonds:0,growth_bonds:0,equity:0,pension:0}),accessAge:99});push('Zero-return engine test',z.rows.length===1&&Number.isFinite(z.rows[0].netWorth));
     const nt=clone(d);for(const k of ['state_general_brackets','valencia_general_brackets','savings_brackets'])nt.tax_rules[k]=nt.tax_rules[k].map(b=>({...b,rate:0}));nt.tax_rules.employee_social_security_rate=0;const n=simulate(nt,{opening,endYear:2032});push('Zero-tax test',Math.abs(n.totalTax)<.01&&Math.abs(n.totalSS)<.01);
