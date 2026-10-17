@@ -271,7 +271,11 @@ function setupTabs(){
 }
 setupTabs();
 
-Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetch('data.json?ts='+Date.now()).then(r=>r.json())]).then(([d,fire])=>{
+function initRetirement(){
+ if(window.__retirementInitStarted)return;
+ window.__retirementInitStarted=true;
+ const loading=document.querySelector('#rUpdated');if(loading)loading.textContent='Loading retirement decision model…';
+ Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetch('data.json?ts='+Date.now()).then(r=>r.json())]).then(([d,fire])=>{
  rSyncRetirementFromFire(d,fire);
  const a=d.assumptions,t=d.tax_rules,p=d.projection_inputs;
  const defaultSim=rSimulate(d,a.default_pension_access_age,a.central_return_rate);
@@ -342,7 +346,7 @@ Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetc
  const fullMcByAge=rRenderFullMcTable(d),fullDefault=fullMcByAge[a.default_pension_access_age];
  document.querySelector('#rFullMcDefault').textContent=(fullDefault.successRate*100).toFixed(0)+'%';
  document.querySelector('#rFullMcP10').textContent=fmt(fullDefault.p10RealEnd);document.querySelector('#rFullMcMedian').textContent=fmt(fullDefault.medianRealEnd);document.querySelector('#rFullMcP90').textContent=fmt(fullDefault.p90RealEnd);
- document.querySelector('#rFullMcCaption').textContent=d.full_plan_monte_carlo.simulations.toLocaleString('en-IE')+' simulations por cenário • shared decision engine • common market paths • até '+d.full_plan_monte_carlo.end_year;
+ document.querySelector('#rFullMcCaption').textContent=fullDefault.simulations.toLocaleString('en-IE')+' interactive simulations por cenário • shared decision engine • full setting '+d.full_plan_monte_carlo.simulations.toLocaleString('en-IE')+' • até '+d.full_plan_monte_carlo.end_year;
  const fStatus=fullDefault.successRate>=.8?'green':fullDefault.successRate>=.6?'amber':'red';
  document.querySelector('#rFullMcStatus').textContent=fStatus==='green'?'🟢 ROBUST':fStatus==='amber'?'🟡 WATCH':'🔴 FRAGILE';
  document.querySelector('#rFullMcStatus').style.color=fStatus==='green'?'var(--green)':fStatus==='amber'?'var(--amber)':'var(--red)';
@@ -363,7 +367,7 @@ Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetc
  document.querySelector('#rForeverWR').textContent=(foreverWR*100).toFixed(2)+'%';
  document.querySelector('#rForeverRequiredReturn').textContent='≈ '+(requiredNominal*100).toFixed(2)+'% p.a.';
  document.querySelector('#rMcSuccess').textContent=(mcReserve.successRate*100).toFixed(0)+'%';
- document.querySelector('#rMcCaption').textContent=ff.monte_carlo.simulations.toLocaleString('en-IE')+' sims • median real 2100 '+fmt(mcReserve.medianRealEnd);
+ document.querySelector('#rMcCaption').textContent=(ff.monte_carlo.interactive_simulations||ff.monte_carlo.simulations).toLocaleString('en-IE')+' interactive sims • full setting '+ff.monte_carlo.simulations.toLocaleString('en-IE')+' • median real 2100 '+fmt(mcReserve.medianRealEnd);
  const statusOk=a.central_return_rate>=requiredNominal;
  document.querySelector('#rForeverStatus').textContent=statusOk?'🟢 Expected real-principal margin':'🟡 Central return below preservation rate';
  document.querySelector('#rForeverStatus').style.color=statusOk?'var(--green)':'var(--amber)';
@@ -384,9 +388,14 @@ Promise.all([fetch('retirement-data.json?ts='+Date.now()).then(r=>r.json()),fetc
  rRenderActualVsPlan(defaultSim.rows,d);
 }).catch(e=>{
  console.error(e);
+ window.__retirementInitStarted=false;
  const el=document.querySelector('#rUpdated');
  if(el)el.textContent='Erro ao carregar retirement-data.json';
-});
+ });
+}
+const retirementBtn=document.querySelector('#retirementTabBtn');
+if(retirementBtn)retirementBtn.addEventListener('click',()=>setTimeout(initRetirement,0));
+if(new URLSearchParams(location.search).get('tab')==='retirement')setTimeout(initRetirement,0);
 
 
 
@@ -449,7 +458,7 @@ function rMonteCarlo(d,mode){
  const eng=window.FireRetirementEngine,md=eng.clone(d),f=d.forever_fire,m=f.monte_carlo;
  md.assumptions.lifestyle_annual_2030=f.portfolio_withdrawal_real_2030;md.assumptions.barista_income_gross_2030=0;md.assumptions.barista_end_year=md.assumptions.retirement_start_year-1;
  md.asset_class_assumptions=md.asset_class_assumptions||{};md.asset_class_assumptions.equity={...(md.asset_class_assumptions.equity||{}),return:m.expected_nominal_return||.05,vol:m.annual_volatility||.12};md.asset_class_assumptions.pension={...(md.asset_class_assumptions.pension||{}),return:m.expected_nominal_return||.05,vol:m.annual_volatility||.12};
- const policy=mode==='reserve'?'three_bucket':'current_waterfall',mc=eng.monteCarlo(md,{opening:d._engineOpening,policy,accessAge:d.assumptions.default_pension_access_age,simulations:m.simulations,endYear:f.end_year,seed:m.seed});
+ const policy=mode==='reserve'?'three_bucket':'current_waterfall',mc=eng.monteCarlo(md,{opening:d._engineOpening,policy,accessAge:d.assumptions.default_pension_access_age,simulations:m.interactive_simulations||m.simulations,endYear:f.end_year,seed:m.seed});
  return {successRate:mc.successRate,medianRealEnd:mc.medianRealEnd,p10:mc.p10RealEnd,p90:mc.p90RealEnd};
 }
 function rDrawForever(sc,d){
@@ -604,7 +613,7 @@ function rSimulate(d,accessAge,returnRate){
  const x=rSimulateEngine(d,accessAge,()=>returnRate,d.assumptions.projection_end_year);x.returnRate=returnRate;return x;
 }
 function rFullPlanMonteCarlo(d,accessAge,opts={}){
- const m=d.full_plan_monte_carlo||{},sims=Number.isFinite(opts.simulations)?opts.simulations:(m.simulations||1500),seedOffset=Number.isFinite(opts.seedOffset)?opts.seedOffset:0,endYear=Number.isFinite(opts.endYear)?opts.endYear:(m.end_year||2100);
+ const m=d.full_plan_monte_carlo||{},sims=Number.isFinite(opts.simulations)?opts.simulations:(m.interactive_simulations||m.simulations||1500),seedOffset=Number.isFinite(opts.seedOffset)?opts.seedOffset:0,endYear=Number.isFinite(opts.endYear)?opts.endYear:(m.end_year||2100);
  const x=window.FireRetirementEngine.monteCarlo(d,{opening:d._engineOpening,accessAge,simulations:sims,endYear,seed:(m.seed||20261009)+seedOffset,policy:(d.withdrawal_policies&&d.withdrawal_policies.default)||'current_waterfall'});
  return {accessAge,successRate:x.successRate,p10RealEnd:x.p10RealEnd,medianRealEnd:x.medianRealEnd,p90RealEnd:x.p90RealEnd,medianFailureYear:x.medianFailureYear,simulations:x.simulations,endYear:x.endYear};
 }
@@ -635,7 +644,7 @@ function rAssetNumberAt(sim,year){
  const row=sim.rows.find(r=>r.year===year);return row?row.netWorth:null;
 }
 function rLifestyleSustainable(d){
- const cfg=d.lifestyle_spending_lab||{},target=cfg.sustainable_success_target||.8,step=cfg.custom_step_annual_2030||1000,age=d.assumptions.default_pension_access_age,sims=cfg.sustainable_search_simulations||800,iters=cfg.sustainable_search_iterations||8;
+ const cfg=d.lifestyle_spending_lab||{},target=cfg.sustainable_success_target||.8,step=cfg.custom_step_annual_2030||1000,age=d.assumptions.default_pension_access_age,sims=cfg.interactive_search_simulations||cfg.sustainable_search_simulations||800,iters=cfg.interactive_search_iterations||cfg.sustainable_search_iterations||8;
  let lo=cfg.custom_min_annual_2030||15000,hi=cfg.custom_max_annual_2030||90000,best=lo,bestMc=null;
  for(let i=0;i<iters&&lo<=hi;i++){
    let mid=Math.round(((lo+hi)/2)/step)*step;mid=Math.max(lo,Math.min(hi,mid));
@@ -713,12 +722,12 @@ function rRenderDecisionAudit(d,fire,defaultSim,fullDefault){
  document.querySelector('#rAuditFreshness').textContent=new Date(fire.updated_at).toLocaleDateString('pt-BR')+' • '+((fire.sync_warnings||[]).length)+' warning(s)';
  document.querySelector('#rDecisionProtected').textContent=metrics.protectedSpendingYears.toFixed(1)+'y / '+bucket.protectedYears.toFixed(1)+'y';document.querySelector('#rDecisionProtectedCaption').textContent='Current / three-bucket';
  document.querySelector('#rDecisionFirstEquity').textContent=metrics.firstEquitySale||'—';document.querySelector('#rDecisionFirstPension').textContent=metrics.firstPensionRequired||'—';document.querySelector('#rDecisionLowest').textContent=fmt(metrics.lowestPortfolioValue);
- const deltas=eng.decisionDeltas(d,{opening:d._engineOpening,fire,simulations:(d.decision_analysis&&d.decision_analysis.simulations)||250,endYear:(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.end_year)||2100,policy:(d.withdrawal_policies&&d.withdrawal_policies.default)||'current_waterfall'}),dt=document.querySelector('#rDecisionDeltaTable');dt.innerHTML='';
+ const deltas=eng.decisionDeltas(d,{opening:d._engineOpening,fire,simulations:(d.decision_analysis&&d.decision_analysis.interactive_simulations)||(d.decision_analysis&&d.decision_analysis.simulations)||250,endYear:(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.end_year)||2100,policy:(d.withdrawal_policies&&d.withdrawal_policies.default)||'current_waterfall'}),dt=document.querySelector('#rDecisionDeltaTable');dt.innerHTML='';
  deltas.cases.forEach(x=>{const tr=document.createElement('tr'),fail=x.firstShortfallScenario||'> '+((d.full_plan_monte_carlo&&d.full_plan_monte_carlo.end_year)||2100);tr.innerHTML='<td>'+x.label+'</td><td>'+(x.successDeltaPp>=0?'+':'')+x.successDeltaPp.toFixed(0)+' pp</td><td>'+fail+'</td><td>'+(x.terminalDelta>=0?'+':'-')+fmt(Math.abs(x.terminalDelta))+'</td>';dt.appendChild(tr)});
  const stresses=eng.runStress(d,{opening:d._engineOpening,policy:'three_bucket',accessAge:d.assumptions.default_pension_access_age,endYear:2060}),st=document.querySelector('#rStressTable');st.innerHTML='';
  stresses.forEach(x=>{const tr=document.createElement('tr');tr.innerHTML='<td>'+x.label+'</td><td>'+(x.firstShortfallYear||'> 2060')+'</td><td>'+(x.firstEquitySale||'—')+'</td><td>'+fmt(x.lowest)+'</td>';st.appendChild(tr)});
- const paths=eng.generatePaths(d,{simulations:300,endYear:(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.end_year)||2100,seed:(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.seed)||20261009}),cur=eng.monteCarlo(d,{opening:d._engineOpening,paths,accessAge:d.assumptions.default_pension_access_age,policy:'current_waterfall'}),mix=eng.monteCarlo(d,{opening:d._engineOpening,paths,accessAge:d.assumptions.default_pension_access_age,policy:'three_bucket'});
- document.querySelector('#rPolicyComparison').innerHTML='<strong>Withdrawal policy:</strong> on the same 300 market paths, current waterfall succeeds in <strong>'+Math.round(cur.successRate*100)+'%</strong> vs <strong>'+Math.round(mix.successRate*100)+'%</strong> for the three-bucket policy. This isolates policy impact from Monte Carlo noise.';
+ const paths=eng.generatePaths(d,{simulations:((d.decision_analysis&&d.decision_analysis.policy_comparison_simulations)||40),endYear:(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.end_year)||2100,seed:(d.full_plan_monte_carlo&&d.full_plan_monte_carlo.seed)||20261009}),cur=eng.monteCarlo(d,{opening:d._engineOpening,paths,accessAge:d.assumptions.default_pension_access_age,policy:'current_waterfall'}),mix=eng.monteCarlo(d,{opening:d._engineOpening,paths,accessAge:d.assumptions.default_pension_access_age,policy:'three_bucket'});
+ document.querySelector('#rPolicyComparison').innerHTML='<strong>Withdrawal policy:</strong> on the same interactive market paths, current waterfall succeeds in <strong>'+Math.round(cur.successRate*100)+'%</strong> vs <strong>'+Math.round(mix.successRate*100)+'%</strong> for the three-bucket policy. This isolates policy impact from Monte Carlo noise.';
  const warnings=[...val.warnings,...(fire.sync_warnings||[])];document.querySelector('#rAuditWarnings').innerHTML=warnings.map(x=>'⚠️ '+x).join('<br>');
 }
 function rAssetAt(sim,year){

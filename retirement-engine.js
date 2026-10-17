@@ -92,7 +92,7 @@
     const gainRatio=clamp((value-basis)/Math.max(value,EPS),0,1);
     const calc=sale=>{const gain=sale*gainRatio,tax=incrementalSavingsTax(priorGain,gain,year,a,t,inflationOverride);return {sale,gain,tax,net:sale-tax}};
     const all=calc(value);if(all.net<=netNeed)return {...all,basisAfter:0};
-    let lo=0,hi=value;for(let i=0;i<50;i++){const m=(lo+hi)/2;if(calc(m).net<netNeed)lo=m;else hi=m}
+    let lo=0,hi=value;for(let i=0;i<22;i++){const m=(lo+hi)/2;if(calc(m).net<netNeed)lo=m;else hi=m}
     const c=calc(hi),principal=hi-c.gain;return {...c,basisAfter:Math.max(0,basis-principal)};
   }
   function applyReturnToLots(lots,r){return (lots||[]).map(l=>({...l,market_value:(Number(l.market_value)||0)*(1+r)}))}
@@ -101,14 +101,14 @@
     const ordered=clone(lots||[]).sort((x,y)=>String(x.acquisition_date||'').localeCompare(String(y.acquisition_date||'')));
     const max=lotTotals(ordered).value;if(netNeed<=0||max<=0)return {sale:0,gain:0,tax:0,net:0,lots:ordered};
     const preview=sale=>{let rem=sale,gain=0,newLots=[];for(const lot of ordered){let mv=Number(lot.market_value)||0,cb=Number(lot.cost_basis)||0;if(rem<=EPS){newLots.push({...lot});continue}const take=Math.min(mv,rem),ratio=mv>0?take/mv:0;gain+=take-cb*ratio;mv-=take;cb-=cb*ratio;rem-=take;if(mv>EPS)newLots.push({...lot,market_value:mv,cost_basis:cb})}const tax=incrementalSavingsTax(priorGain,Math.max(0,gain),year,a,t,inflationOverride);return {sale:sale-rem,gain:Math.max(0,gain),tax,net:sale-rem-tax,lots:newLots}};
-    const all=preview(max);if(all.net<=netNeed)return all;let lo=0,hi=max;for(let i=0;i<50;i++){const m=(lo+hi)/2;if(preview(m).net<netNeed)lo=m;else hi=m}return preview(hi);
+    const all=preview(max);if(all.net<=netNeed)return all;let lo=0,hi=max;for(let i=0;i<22;i++){const m=(lo+hi)/2;if(preview(m).net<netNeed)lo=m;else hi=m}return preview(hi);
   }
   function pensionForNet(vPot,rPot,roselySalary,netNeed,year,accessAge,d,baseVictor=0,baseRosely=0,inflationOverride){
     if(netNeed<=0)return {gross:0,victor:0,rosely:0,tax:0,net:0};const eligible=[];
     if(personEligible(d,'Victor',year,accessAge)&&vPot>0)eligible.push({who:'Victor',pot:vPot});if(personEligible(d,'Rosely',year,accessAge)&&rPot>0)eligible.push({who:'Rosely',pot:rPot});
     const total=sum(eligible.map(x=>x.pot));if(total<=0)return {gross:0,victor:0,rosely:0,tax:0,net:0};const a=d.assumptions,t=d.tax_rules;
     const calc=g=>{g=Math.min(g,total);let victor=0,rosely=0;for(const x of eligible){const z=g*x.pot/total;if(x.who==='Victor')victor=z;else rosely=z}const bR=generalTax(roselySalary,baseRosely,year,a,t,inflationOverride).tax,wR=generalTax(roselySalary,baseRosely+rosely,year,a,t,inflationOverride).tax,bV=generalTax(0,baseVictor,year,a,t,inflationOverride).tax,wV=generalTax(0,baseVictor+victor,year,a,t,inflationOverride).tax,tax=(wR-bR)+(wV-bV);return {gross:g,victor,rosely,tax,net:g-tax}};
-    const all=calc(total);if(all.net<=netNeed)return all;let lo=0,hi=total;for(let i=0;i<50;i++){const m=(lo+hi)/2;if(calc(m).net<netNeed)lo=m;else hi=m}return calc(hi);
+    const all=calc(total);if(all.net<=netNeed)return all;let lo=0,hi=total;for(let i=0;i<22;i++){const m=(lo+hi)/2;if(calc(m).net<netNeed)lo=m;else hi=m}return calc(hi);
   }
 
   function defaultAssets(d){const x=d.asset_class_assumptions||{};return {cash:{return:0,vol:0},short_bonds:{return:.03,vol:.04},growth_bonds:{return:.03,vol:.06},equity:{return:.05,vol:.15},pension:{return:.05,vol:.11},...x}}

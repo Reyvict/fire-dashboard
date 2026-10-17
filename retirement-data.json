@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-10-16T20:58:00Z",
+  "updated_at": "2026-10-17T06:35:00+01:00",
   "phase": "projection",
   "assumptions": {
     "retirement_start_year": 2030,
@@ -195,7 +195,8 @@
       "annual_volatility": 0.12,
       "seed": 20261003,
       "return_floor": -0.95,
-      "note": "Simplified pre-tax sequence-of-returns stress test; State Pension excluded."
+      "note": "Simplified pre-tax sequence-of-returns stress test; State Pension excluded.",
+      "interactive_simulations": 60
     }
   },
   "bridge_to_pension": {
@@ -220,7 +221,8 @@
       55,
       60
     ],
-    "note": "Runs the retirement cash/ETF/pension/tax waterfall with randomized annual returns. Uses the planning tax model and pension-rule assumptions below."
+    "note": "Runs the retirement cash/ETF/pension/tax waterfall with randomized annual returns. Uses the planning tax model and pension-rule assumptions below.",
+    "interactive_simulations": 60
   },
   "pension_rules": {
     "jurisdiction": "Ireland",
@@ -293,14 +295,17 @@
     "sustainable_success_target": 0.8,
     "sustainable_search_simulations": 800,
     "sustainable_search_iterations": 8,
-    "note": "What-if only. The official retirement baseline remains €60k/year in 2030 euros; scenario selections are browser-side and do not overwrite the plan."
+    "note": "What-if only. The official retirement baseline remains €60k/year in 2030 euros; scenario selections are browser-side and do not overwrite the plan.",
+    "interactive_search_simulations": 30,
+    "interactive_search_iterations": 5
   },
   "model_meta": {
     "engine_version": "2.4.0",
     "assumption_version": "2026-10-16",
     "calculation_engine": "retirement-engine.js",
     "return_timing": "annual return before annual withdrawals",
-    "note": "Decision-engine refactor. Dashboard version remains V2.3; existing functionality and official accumulation source-of-truth are preserved."
+    "note": "Decision-engine refactor. Dashboard version remains V2.3; existing functionality and official accumulation source-of-truth are preserved.",
+    "performance_note": "Heavy retirement simulations are lazy-loaded only when the Retirement tab is opened. Browser uses interactive sample sizes; full/high-fidelity simulation counts remain preserved in config."
   },
   "opening_balance_policy": {
     "default_mode": "official_plan",
@@ -468,7 +473,9 @@
       "pension_50_vs_55",
       "accessible_plus_100k"
     ],
-    "note": "All stochastic decision comparisons use identical market paths so the delta reflects the decision rather than Monte Carlo noise."
+    "note": "All stochastic decision comparisons use identical market paths so the delta reflects the decision rather than Monte Carlo noise.",
+    "interactive_simulations": 30,
+    "policy_comparison_simulations": 40
   },
   "model_validation": {
     "accounting_tolerance_eur": 0.01,
