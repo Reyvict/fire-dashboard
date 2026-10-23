@@ -23,3 +23,9 @@ table{width:100%;border-collapse:collapse;font-size:12px}th{text-align:left;colo
 .retirement-detail.is-collapsed{display:none}.mc-number{font-size:25px;font-weight:850;letter-spacing:-.03em}
 footer{text-align:center;color:#707b94;font-size:10px;margin-top:16px}
 @media(max-width:760px){.grid{grid-template-columns:repeat(2,1fr)}.scenario-controls{grid-template-columns:repeat(2,1fr)}.two{grid-template-columns:1fr}.outcomes{grid-template-columns:1fr}h1{font-size:23px}.value{font-size:21px}.chart-head{display:block}.chart-head .small{text-align:left;margin-top:5px}svg{height:270px}.margin-chart{height:190px}}
+
+/* Keep previous scenario output hidden until its replacement is complete. */
+#rLifestyleLab.calculating .grid, #rLifestyleLab.calculating table, #rLifestyleLab.calculating #rLifeInsight, #rLifestyleLab.calculating #rLifeMonthly { visibility: hidden; }
+#rCalculationStatus { margin: 12px 0; color: var(--muted); }
+
+#rLifestyleLab.calculation-error .grid, #rLifestyleLab.calculation-error table, #rLifestyleLab.calculation-error #rLifeInsight, #rLifestyleLab.calculation-error #rLifeMonthly { visibility: hidden; }

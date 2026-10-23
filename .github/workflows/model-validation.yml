@@ -15,5 +15,13 @@ jobs:
         run: |
           node --check retirement-engine.js
           node --check app.js
+          node --check retirement-worker.js
+          node --check retirement-client.js
       - name: Financial model tests
-        run: node tests/retirement-engine.test.js
+        run: npm test
+      - name: Install browser test dependencies
+        run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Browser regression checks
+        run: npm run test:browser
